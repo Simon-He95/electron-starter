@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "jsx": "preserve",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "baseUrl": ".",
+    "paths": {
+      "@renderer/*": [
+        "src/renderer/*"
+      ],
+      "@src/*": ["src/*"],
+      "@static/*": ["src/static/*"],
+      "@preload/*": ["src/preload/*"],
+      "electron": ["node_modules/electron"],
+      "electron/*": ["node_modules/electron/*"]
+    },
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "useUnknownInCatchVariables": false,
+    "declaration": true,
+    "sourceMap": false,
+    "esModuleInterop": true,
+    "preserveSymlinks": true,
+    "skipLibCheck": true
+  },
+  "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.web.json" }],
+  "files": []
+}
