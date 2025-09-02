@@ -26,8 +26,8 @@ export function createWindow(options?: WindowOptions) {
       ...(process.platform === 'linux' ? { icon } : {}),
       webPreferences: {
         preload: join(__dirname, '../preload/index.mjs'),
-        sandbox: false,
-      },
+        sandbox: false
+      }
     },
     options?.windowConfig,
     {
@@ -35,8 +35,8 @@ export function createWindow(options?: WindowOptions) {
         (options?.windowConfig?.modal ?? options?.bound?.x)
           ? false
           : !!options?.windowConfig?.parent,
-      parent: options?.bound?.x ? undefined : options?.windowConfig?.parent,
-    },
+      parent: options?.bound?.x ? undefined : options?.windowConfig?.parent
+    }
   )
   const mainWindow = new BrowserWindow(windowConfig)
 
@@ -47,44 +47,41 @@ export function createWindow(options?: WindowOptions) {
         height: windowConfig.height,
         width: windowConfig.width,
         x: 0,
-        y: 0,
+        y: 0
       }
       let x, y
       if (!options?.type || options?.type === 'left-top') {
         x = (parentBounds?.x ?? 0) + (options?.bound?.x ?? 0)
         y = (parentBounds?.y ?? 0) + (options?.bound?.y ?? 0)
-      }
-      else if (options?.type === 'right-top') {
-        x
-          = (parentBounds?.x ?? 0)
-            + (parentBounds?.width ?? 0)
-            - (options?.bound?.x ?? 0)
-            - (parentBounds?.width ?? 0)
+      } else if (options?.type === 'right-top') {
+        x =
+          (parentBounds?.x ?? 0) +
+          (parentBounds?.width ?? 0) -
+          (options?.bound?.x ?? 0) -
+          (parentBounds?.width ?? 0)
         y = (parentBounds?.y ?? 0) + (options?.bound?.y ?? 0)
-      }
-      else if (options?.type === 'left-bottom') {
+      } else if (options?.type === 'left-bottom') {
         x = (parentBounds?.x ?? 0) + (options?.bound?.x ?? 0)
-        y
-          = (parentBounds?.y ?? 0)
-            + (parentBounds?.height ?? 0)
-            - (options?.bound?.y ?? 0)
-            - (parentBounds?.height ?? 0)
-      }
-      else if (options?.type === 'right-bottom') {
-        x
-          = (parentBounds?.x ?? 0)
-            + (parentBounds?.width ?? 0)
-            - (options?.bound?.x ?? 0)
-            - (parentBounds?.width ?? 0)
-        y
-          = (parentBounds?.y ?? 0)
-            + (parentBounds?.height ?? 0)
-            - (options?.bound?.y ?? 0)
-            - (parentBounds?.height ?? 0)
+        y =
+          (parentBounds?.y ?? 0) +
+          (parentBounds?.height ?? 0) -
+          (options?.bound?.y ?? 0) -
+          (parentBounds?.height ?? 0)
+      } else if (options?.type === 'right-bottom') {
+        x =
+          (parentBounds?.x ?? 0) +
+          (parentBounds?.width ?? 0) -
+          (options?.bound?.x ?? 0) -
+          (parentBounds?.width ?? 0)
+        y =
+          (parentBounds?.y ?? 0) +
+          (parentBounds?.height ?? 0) -
+          (options?.bound?.y ?? 0) -
+          (parentBounds?.height ?? 0)
       }
       mainWindow.setBounds({
         x,
-        y,
+        y
       })
     }
     mainWindow.show()
@@ -101,11 +98,10 @@ export function createWindow(options?: WindowOptions) {
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
     const filePath = join(
       process.env.ELECTRON_RENDERER_URL,
-      `${options?.hashRoute ? `#${options?.hashRoute}` : ''}?${new URLSearchParams(options?.params).toString()}`,
+      `${options?.hashRoute ? `#${options?.hashRoute}` : ''}?${new URLSearchParams(options?.params).toString()}`
     )
     mainWindow.loadURL(filePath)
-  }
-  else {
+  } else {
     const filePath = options?.params
       ? `renderer/index.html${options.hashRoute ? `#${options.hashRoute}` : ''}?${new URLSearchParams(options.params).toString()}`
       : `renderer/index.html${options?.hashRoute ? `#${options.hashRoute}` : ''}`

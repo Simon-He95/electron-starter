@@ -12,7 +12,7 @@ export const api = {
     return ipcRenderer.invoke(channel as string, ...args) as Promise<
       Awaited<ReturnType<IPCInvokeMap[K]>>
     >
-  },
+  }
 }
 
 // 导出类型，供声明文件/renderer 引用
@@ -25,12 +25,10 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error)
   }
-}
-else {
+} else {
   // @ts-expect-error (define in dts)
   window.electron = electronAPI
   // @ts-expect-error (define in dts)
