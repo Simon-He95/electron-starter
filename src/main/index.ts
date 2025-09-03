@@ -26,7 +26,7 @@ app.whenReady().then(() => {
 
   Object.keys(ipcListener).forEach((key) => {
     // 每个 listener 的实现期望的是 (...args) 而不是 (event, ...args)
-    ipcMain.handle(key, (event, ...args) => (ipcListener as any)[key](...args))
+    ipcMain.handle(key, (...args) => (ipcListener as any)[key](...args))
   })
 
   app.on('activate', () => {

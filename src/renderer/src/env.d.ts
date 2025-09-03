@@ -18,6 +18,7 @@ declare module 'virtual:generated-pages' {
 declare global {
   interface Window {
     // Custom API exposed from preload
+    electron: typeof import('@electron-toolkit/preload').electronAPI
     api: PreloadAPI
   }
 }

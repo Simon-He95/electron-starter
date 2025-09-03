@@ -5,7 +5,7 @@ import { createWindow } from './createWindow.js'
 
 // ipcListener 的 handler 签名不包含 IpcMainInvokeEvent，方便在 preload/renderer 使用
 const ipcListener = {
-  createWindow: (params: WindowOptions) => {
+  createWindow: (_event, params: WindowOptions) => {
     createWindow(
       Object.assign(
         {
@@ -16,6 +16,7 @@ const ipcListener = {
     )
   },
   ping: () => {
+    // eslint-disable-next-line no-console
     console.log('pong')
   }
 } satisfies {
