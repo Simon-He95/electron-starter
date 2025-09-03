@@ -1,4 +1,4 @@
-import type { IPCInvokeMap } from '../shared/ipc.js'
+import type { IPCInvokeMap } from '../shared/types.js'
 import process from 'node:process'
 import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge, ipcRenderer } from 'electron'

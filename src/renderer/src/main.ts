@@ -1,5 +1,6 @@
 import { createPinia } from 'pinia'
 
+// @ts-expect-error -- IGNORE --
 import routes from 'virtual:generated-pages'
 import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'

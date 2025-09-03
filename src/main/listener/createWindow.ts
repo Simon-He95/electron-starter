@@ -1,4 +1,4 @@
-import type { BrowserWindowConstructorOptions } from 'electron'
+import type { WindowOptions } from '../../shared/types.js'
 import { join } from 'node:path'
 import process from 'node:process'
 import { is } from '@electron-toolkit/utils'
@@ -6,13 +6,6 @@ import { BrowserWindow, shell } from 'electron'
 import icon from '../../../resources/icon.png?asset'
 import { context } from '../index.js'
 
-export interface WindowOptions {
-  windowConfig: Omit<BrowserWindowConstructorOptions, 'webPreferences' | 'x' | 'y'>
-  params?: Record<string, any>
-  type?: 'left-top' | 'right-top' | 'left-bottom' | 'right-bottom' | 'center'
-  bound?: Partial<Electron.Rectangle>
-  hashRoute?: string
-}
 export function createWindow(options: WindowOptions = { windowConfig: {} }) {
   // Create the browser window.
   // 当设置了 bound 时，parent 不应该生效，因为有 parent 的话，window 会出现在 parent 的中央

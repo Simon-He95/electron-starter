@@ -1,5 +1,4 @@
-import type { IPCInvokeMap } from '../../shared/ipc.js'
-import type { WindowOptions } from './createWindow.js'
+import type { IPCInvokeMap, WindowOptions } from '../../shared/types.js'
 import { context } from '../index.js'
 import { createWindow } from './createWindow.js'
 

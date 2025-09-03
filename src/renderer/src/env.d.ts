@@ -1,5 +1,11 @@
 /// <reference types="vite/client" />
-import type { PreloadAPI } from '../../preload/index'
+// NOTE: avoid importing from ../../preload here because that would pull src/preload
+// into the renderer project's type-check scope. Declare a minimal PreloadAPI used
+// by the renderer instead.
+
+type PreloadAPI = {
+  send: <K extends string>(channel: K, ...args: any[]) => Promise<any>
+}
 
 declare module '*.vue' {
   import type { DefineComponent } from 'vue'
