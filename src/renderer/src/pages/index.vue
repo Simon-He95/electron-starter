@@ -6,11 +6,12 @@ const countStore = useCountStore()
 
 async function newWindow() {
   window.api.send('createWindow', {
+    hashRoute: '_demo',
+    type: 'left-top',
     bound: {
-      x: -200,
+      x: -50,
       y: 0
     },
-    hashRoute: '_demo',
     windowConfig: {
       height: 300,
       width: 400

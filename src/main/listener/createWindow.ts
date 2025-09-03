@@ -40,55 +40,63 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
   const mainWindow = new BrowserWindow(windowConfig)
 
   mainWindow.on('ready-to-show', () => {
-    if (options.bound) {
-      // 如果有 parent，则相对于 parent 定位
-      const parentBounds =
-        options.windowConfig?.parent?.getBounds() ||
-        BrowserWindow.getFocusedWindow()?.getBounds() ||
-        context.mainWindow?.getBounds()
-      if (!parentBounds) {
-        return
-      }
+    // 如果有 parent，则相对于 parent 定位
+    const parentBounds =
+      options.windowConfig?.parent?.getBounds() ||
+      BrowserWindow.getFocusedWindow()?.getBounds() ||
+      context.mainWindow?.getBounds()
+    if (!parentBounds) {
+      return
+    }
 
-      let x, y
-      if (!options.type || options.type === 'center') {
-        x =
-          (parentBounds.x ?? 0) +
-          ((parentBounds.width ?? 0) - (mainWindow.getBounds().width ?? 0)) / 2
-        y =
-          (parentBounds.y ?? 0) +
-          ((parentBounds.height ?? 0) - (mainWindow.getBounds().height ?? 0)) / 2
-      } else if (options.type === 'left-top') {
-        x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0)
-        y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
-      } else if (options.type === 'right-top') {
-        x =
-          (parentBounds.x ?? 0) +
-          (parentBounds.width ?? 0) -
-          (options.bound?.x ?? 0) -
-          (parentBounds.width ?? 0)
-        y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
-      } else if (options.type === 'left-bottom') {
-        x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0)
-        y =
-          (parentBounds.y ?? 0) +
-          (parentBounds.height ?? 0) -
-          (options.bound?.y ?? 0) -
-          (parentBounds.height ?? 0)
-      } else if (options.type === 'right-bottom') {
-        x =
-          (parentBounds.x ?? 0) +
-          (parentBounds.width ?? 0) -
-          (options.bound?.x ?? 0) -
-          (parentBounds.width ?? 0)
-        y =
-          (parentBounds.y ?? 0) +
-          (parentBounds.height ?? 0) -
-          (options.bound?.y ?? 0) -
-          (parentBounds.height ?? 0)
-      }
+    let x, y
+    if (!options.type || options.type === 'center') {
+      x =
+        (parentBounds.x ?? 0) +
+        ((parentBounds.width ?? 0) - (mainWindow.getBounds().width ?? 0)) / 2
+      y =
+        (parentBounds.y ?? 0) +
+        ((parentBounds.height ?? 0) - (mainWindow.getBounds().height ?? 0)) / 2
+    } else if (options.type === 'left-top') {
+      x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0)
+      y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
+    } else if (options.type === 'right-top') {
+      x =
+        (parentBounds.x ?? 0) +
+        (parentBounds.width ?? 0) -
+        (options.bound?.x ?? 0) -
+        (parentBounds.width ?? 0)
+      y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
+    } else if (options.type === 'left-bottom') {
+      x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0)
+      y =
+        (parentBounds.y ?? 0) +
+        (parentBounds.height ?? 0) -
+        (options.bound?.y ?? 0) -
+        (parentBounds.height ?? 0)
+    } else if (options.type === 'right-bottom') {
+      x =
+        (parentBounds.x ?? 0) +
+        (parentBounds.width ?? 0) -
+        (options.bound?.x ?? 0) -
+        (parentBounds.width ?? 0)
+      y =
+        (parentBounds.y ?? 0) +
+        (parentBounds.height ?? 0) -
+        (options.bound?.y ?? 0) -
+        (parentBounds.height ?? 0)
+    }
+    if (options.bound?.width || options.bound?.height) {
+      mainWindow.setBounds({
+        height: options.bound?.height,
+        width: options.bound?.width,
+        x,
+        y
+      })
+    } else {
       mainWindow.setPosition(x, y)
     }
+
     mainWindow.show()
   })
 
