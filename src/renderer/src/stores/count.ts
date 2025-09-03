@@ -10,11 +10,11 @@ const useStore = defineStore('count', {
     increment() {
       this.count++
       channel.postMessage({ count: this.count })
-    }
+    },
   },
   state: () => ({
-    count: 0
-  })
+    count: 0,
+  }),
 })
 
 channel.onmessage = (event) => {

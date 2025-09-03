@@ -1,3 +1,4 @@
+@import './tailwind.css';
 @import './base.css';
 
 body {
@@ -86,14 +87,6 @@ code {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 700;
-}
-
-.actions {
-  display: flex;
-  padding-top: 32px;
-  margin: -6px;
-  flex-wrap: wrap;
-  justify-content: flex-start;
 }
 
 .action {

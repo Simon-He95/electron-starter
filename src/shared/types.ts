@@ -3,7 +3,7 @@ import type { BrowserWindowConstructorOptions, IpcMainInvokeEvent } from 'electr
 export interface WindowOptions {
   windowConfig: Omit<BrowserWindowConstructorOptions, 'webPreferences' | 'x' | 'y'>
   params?: Record<string, any>
-  type?: 'left-top' | 'right-top' | 'left-bottom' | 'right-bottom' | 'center'
+  type?: 'left-top-in' | 'left-top-out' | 'right-top-in' | 'right-top-out' | 'left-bottom-in' | 'left-bottom-out' | 'right-bottom-in' | 'right-bottom-out' | 'center'
   bound?: Partial<Electron.Rectangle>
   hashRoute?: string
 }

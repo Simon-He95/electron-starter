@@ -12,7 +12,7 @@ const pinia = createPinia()
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
-  routes
+  routes,
 })
 
 const app = createApp(App)
