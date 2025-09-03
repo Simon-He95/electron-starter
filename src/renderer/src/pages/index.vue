@@ -5,62 +5,87 @@ import { ref } from 'vue'
 const countStore = useCountStore()
 const offset = ref({
   x: 0,
-  y: 0,
+  y: 0
 })
-async function newWindow(position: 'left-top-in' | 'left-top-out' | 'right-top-in' | 'right-top-out' | 'left-bottom-in' | 'left-bottom-out' | 'right-bottom-in' | 'right-bottom-out' | 'center') {
+async function newWindow(
+  position:
+    | 'left-top-in'
+    | 'left-top-out'
+    | 'right-top-in'
+    | 'right-top-out'
+    | 'left-bottom-in'
+    | 'left-bottom-out'
+    | 'right-bottom-in'
+    | 'right-bottom-out'
+    | 'center'
+) {
   window.api.send('createWindow', {
     hashRoute: '_demo',
     type: position,
     bound: {
       x: +offset.value.x,
-      y: +offset.value.y,
+      y: +offset.value.y
     },
     windowConfig: {
       height: 300,
-      width: 400,
+      width: 400
     },
     params: {
-      data: 'hello',
-    },
+      data: 'hello'
+    }
   })
 }
 </script>
 
 <template>
-  <img alt="logo" class="logo" src="../assets/electron.svg">
+  <img alt="logo" class="logo" src="../assets/electron.svg" />
   <div class="creator" @click="countStore.increment">
     Powered by electron-vite {{ countStore.count }}
   </div>
   <div class="text">
     Build an Electron app with <span class="vue">Vue</span> and <span class="ts">TypeScript</span>
   </div>
-  <p class="tip">
-    Please try pressing <code>F12</code> to open the devTool
-  </p>
+  <p class="tip">Please try pressing <code>F12</code> to open the devTool</p>
   <div class="grid-cols-3 grid grid-flow-row">
     <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('left-top-in')">new Window on left-top-in</a>
+      <a target="_blank" rel="noreferrer" @click="newWindow('left-top-in')"
+        >new Window on left-top-in</a
+      >
     </div>
     <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('left-top-out')">new Window on left-top-out</a>
+      <a target="_blank" rel="noreferrer" @click="newWindow('left-top-out')"
+        >new Window on left-top-out</a
+      >
     </div>
     <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('right-top-in')">new Window on right-top-in</a>
+      <a target="_blank" rel="noreferrer" @click="newWindow('right-top-in')"
+        >new Window on right-top-in</a
+      >
     </div>
     <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('right-top-out')">new Window on right-top-out</a>
+      <a target="_blank" rel="noreferrer" @click="newWindow('right-top-out')"
+        >new Window on right-top-out</a
+      >
     </div>
     <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('left-bottom-in')">new Window on left-bottom-in</a>
+      <a target="_blank" rel="noreferrer" @click="newWindow('left-bottom-in')"
+        >new Window on left-bottom-in</a
+      >
     </div>
     <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('left-bottom-out')">new Window on left-bottom-out</a>
+      <a target="_blank" rel="noreferrer" @click="newWindow('left-bottom-out')"
+        >new Window on left-bottom-out</a
+      >
     </div>
     <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('right-bottom-in')">new Window on right-bottom-in</a>
+      <a target="_blank" rel="noreferrer" @click="newWindow('right-bottom-in')"
+        >new Window on right-bottom-in</a
+      >
     </div>
     <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('right-bottom-out')">new Window on right-bottom-out</a>
+      <a target="_blank" rel="noreferrer" @click="newWindow('right-bottom-out')"
+        >new Window on right-bottom-out</a
+      >
     </div>
     <div class="action">
       <a target="_blank" rel="noreferrer" @click="newWindow('center')">new Window on center</a>
@@ -70,14 +95,14 @@ async function newWindow(position: 'left-top-in' | 'left-top-out' | 'right-top-i
     <div class="mt-4 space-y-2">
       <div class="flex items-center gap-2">
         <label class="w-16">offset.x</label>
-        <input v-model="offset.x" type="range" min="-1000" max="1000" step="1">
+        <input v-model="offset.x" type="range" min="-1000" max="1000" step="1" />
         <div class="ml-4">
           {{ offset.x }}
         </div>
       </div>
       <div class="flex items-center gap-2">
         <label class="w-16">offset.y</label>
-        <input v-model="offset.y" type="range" min="-1000" max="1000" step="1">
+        <input v-model="offset.y" type="range" min="-1000" max="1000" step="1" />
         <div class="ml-4">
           {{ offset.y }}
         </div>

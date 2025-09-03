@@ -7,7 +7,7 @@ const route = useRoute()
 </script>
 
 <template>
-  <img alt="logo" class="logo" src="../assets/electron.svg">
+  <img alt="logo" class="logo" src="../assets/electron.svg" />
   <div class="creator" @click="countStore.increment">
     我是 demo {{ countStore.count }}
     {{ route.query.data }}

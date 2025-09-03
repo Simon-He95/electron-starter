@@ -4,7 +4,7 @@ const proxy = new Map<string, Promise<any>>()
 
 export function on(
   channel: string,
-  listener: (event: Electron.IpcMainEvent, ...args: any[]) => unknown,
+  listener: (event: Electron.IpcMainEvent, ...args: any[]) => unknown
 ) {
   if (proxy.has(channel)) {
     throw new Error(`Channel ${channel} is already registered`)
@@ -15,8 +15,7 @@ export function on(
       try {
         const result = await listener(event, ...args)
         resolve(result)
-      }
-      catch (error) {
+      } catch (error) {
         reject(error)
       }
     })

@@ -3,15 +3,33 @@ import { join } from 'node:path'
 import process from 'node:process'
 import { is } from '@electron-toolkit/utils'
 import { BrowserWindow, shell } from 'electron'
+import { useInterval } from 'lazy-js-utils'
+import { v4 } from 'uuid'
 import icon from '../../../resources/icon.png?asset'
 import { context } from '../index.js'
 
+const windowMap = new Map<string, BrowserWindow>()
 export function createWindow(options: WindowOptions = { windowConfig: {} }) {
   // Create the browser window.
   // 当设置了 bound 时，parent 不应该生效，因为有 parent 的话，window 会出现在 parent 的中央
+  if (options.id && windowMap.has(options.id)) {
+    const win = windowMap.get(options.id)!
+    if (!win.isDestroyed()) {
+      win.focus()
+      return win
+    }
+  }
+  if (!options.id) {
+    options.id = v4()
+  }
   const windowConfig = Object.assign(
     {
       alwaysOnTop: true,
+      animate: {
+        duration: 16,
+        offsetX: 0,
+        offsetY: -50
+      },
       autoHideMenuBar: true,
       closable: true,
       height: 670,
@@ -20,114 +38,185 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
       ...(process.platform === 'linux' ? { icon } : {}),
       webPreferences: {
         preload: join(__dirname, '../preload/index.mjs'),
-        sandbox: false,
-      },
+        sandbox: false
+      }
     },
     options.windowConfig,
     {
       modal:
         (options.windowConfig?.modal ?? options.bound?.x) ? false : !!options.windowConfig?.parent,
-      parent: options.bound?.x ? undefined : options.windowConfig?.parent,
-    },
+      parent: options.bound?.x ? undefined : options.windowConfig?.parent
+    }
   )
   const mainWindow = new BrowserWindow(windowConfig)
 
+  windowMap.set(options.id, mainWindow)
+
   mainWindow.on('ready-to-show', () => {
     // 如果有 parent，则相对于 parent 定位
-    const parentBounds
-      = options.windowConfig?.parent?.getBounds()
-        || BrowserWindow.getFocusedWindow()?.getBounds()
-        || context.mainWindow?.getBounds()
+    const parentBounds =
+      options.windowConfig?.parent?.getBounds() ||
+      BrowserWindow.getFocusedWindow()?.getBounds() ||
+      context.mainWindow?.getBounds()
     if (!parentBounds) {
       return
     }
 
     let x, y
     if (!options.type || options.type === 'center') {
-      x
-        = (parentBounds.x ?? 0)
-          + ((parentBounds.width ?? 0) - (mainWindow.getBounds().width ?? 0)) / 2
-      y
-        = (parentBounds.y ?? 0)
-          + ((parentBounds.height ?? 0) - (mainWindow.getBounds().height ?? 0)) / 2
-    }
-    else if (options.type === 'left-top-in') {
+      x =
+        (parentBounds.x ?? 0) +
+        ((parentBounds.width ?? 0) - (mainWindow.getBounds().width ?? 0)) / 2
+      y =
+        (parentBounds.y ?? 0) +
+        ((parentBounds.height ?? 0) - (mainWindow.getBounds().height ?? 0)) / 2
+    } else if (options.type === 'left-top-in') {
       x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0)
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
-    }
-    else if (options.type === 'left-top-out') {
+    } else if (options.type === 'left-top-out') {
       x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0) - (mainWindow.getBounds().width ?? 0)
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
-    }
-    else if (options.type === 'right-top-out') {
-      x
-        = (parentBounds.x ?? 0)
-          + (parentBounds.width ?? 0)
-          - (options.bound?.x ?? 0)
+    } else if (options.type === 'right-top-out') {
+      x = (parentBounds.x ?? 0) + (parentBounds.width ?? 0) - (options.bound?.x ?? 0)
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
-    }
-    else if (options.type === 'right-top-in') {
-      x
-        = (parentBounds.x ?? 0)
-          + (parentBounds.width ?? 0)
-          - (options.bound?.x ?? 0) - (mainWindow.getBounds().width ?? 0)
+    } else if (options.type === 'right-top-in') {
+      x =
+        (parentBounds.x ?? 0) +
+        (parentBounds.width ?? 0) -
+        (options.bound?.x ?? 0) -
+        (mainWindow.getBounds().width ?? 0)
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
-    }
-    else if (options.type === 'left-bottom-in') {
+    } else if (options.type === 'left-bottom-in') {
       x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0)
-      y
-        = (parentBounds.y ?? 0)
-          + (parentBounds.height ?? 0)
-          - (options.bound?.y ?? 0)
-          - (mainWindow.getBounds().height ?? 0)
-    }
-    else if (options.type === 'left-bottom-out') {
+      y =
+        (parentBounds.y ?? 0) +
+        (parentBounds.height ?? 0) -
+        (options.bound?.y ?? 0) -
+        (mainWindow.getBounds().height ?? 0)
+    } else if (options.type === 'left-bottom-out') {
       x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0) - (mainWindow.getBounds().width ?? 0)
-      y
-        = (parentBounds.y ?? 0)
-          + (parentBounds.height ?? 0)
-          - (options.bound?.y ?? 0)
-          - (mainWindow.getBounds().height ?? 0)
-    }
-    else if (options.type === 'right-bottom-out') {
-      x
-        = (parentBounds.x ?? 0)
-          + (parentBounds.width ?? 0)
-          - (options.bound?.x ?? 0)
-      y
-        = (parentBounds.y ?? 0)
-          + (parentBounds.height ?? 0)
-          - (options.bound?.y ?? 0)
-          - (mainWindow.getBounds().height ?? 0)
-    }
-    else if (options.type === 'right-bottom-in') {
-      x
-        = (parentBounds.x ?? 0)
-          + (parentBounds.width ?? 0)
-          - (options.bound?.x ?? 0)
-          - (mainWindow.getBounds().width ?? 0)
-      y
-        = (parentBounds.y ?? 0)
-          + (parentBounds.height ?? 0)
-          - (options.bound?.y ?? 0)
-          - (mainWindow.getBounds().height ?? 0)
-    }
-    else {
+      y =
+        (parentBounds.y ?? 0) +
+        (parentBounds.height ?? 0) -
+        (options.bound?.y ?? 0) -
+        (mainWindow.getBounds().height ?? 0)
+    } else if (options.type === 'right-bottom-out') {
+      x = (parentBounds.x ?? 0) + (parentBounds.width ?? 0) - (options.bound?.x ?? 0)
+      y =
+        (parentBounds.y ?? 0) +
+        (parentBounds.height ?? 0) -
+        (options.bound?.y ?? 0) -
+        (mainWindow.getBounds().height ?? 0)
+    } else if (options.type === 'right-bottom-in') {
+      x =
+        (parentBounds.x ?? 0) +
+        (parentBounds.width ?? 0) -
+        (options.bound?.x ?? 0) -
+        (mainWindow.getBounds().width ?? 0)
+      y =
+        (parentBounds.y ?? 0) +
+        (parentBounds.height ?? 0) -
+        (options.bound?.y ?? 0) -
+        (mainWindow.getBounds().height ?? 0)
+    } else {
       throw new Error(`type: [${options.type}] is not supported`)
     }
-    if (options.bound?.width || options.bound?.height) {
-      mainWindow.setBounds({
-        height: options.bound?.height,
-        width: options.bound?.width,
-        x,
-        y,
-      })
-    }
-    else {
-      mainWindow.setPosition(x, y)
+
+    if (windowConfig.animate) {
+      let offsetX = windowConfig.animate.offsetX ?? 0
+      let offsetY = windowConfig.animate.offsetY ?? -50
+      let opacity = 0
+      mainWindow.setOpacity(opacity)
+      if (options.bound?.width || options.bound?.height) {
+        mainWindow.setBounds(
+          {
+            height: options.bound?.height,
+            width: options.bound?.width,
+            x: Math.floor(x - offsetX),
+            y: Math.floor(y - offsetY)
+          },
+          true
+        )
+        setTimeout(() => {
+          const { pause } = useInterval(() => {
+            opacity += 0.1
+            offsetX = offsetX * 0.7
+            offsetY = offsetY * 0.7
+            if (opacity >= 1) {
+              mainWindow.setOpacity(1)
+              mainWindow.setBounds(
+                {
+                  height: options.bound?.height,
+                  width: options.bound?.width,
+                  x,
+                  y
+                },
+                true
+              )
+              pause()
+            } else {
+              mainWindow.setOpacity(opacity)
+              mainWindow.setBounds(
+                {
+                  height: options.bound?.height,
+                  width: options.bound?.width,
+                  x: Math.floor(x - offsetX),
+                  y: Math.floor(y - offsetY)
+                },
+                true
+              )
+            }
+          }, windowConfig.animate?.duration ?? 16)
+        })
+      } else {
+        mainWindow.setPosition(Math.floor(x - offsetX), Math.floor(y - offsetY), true)
+        setTimeout(() => {
+          const { pause } = useInterval(() => {
+            opacity += 0.1
+            offsetX = offsetX * 0.7
+            offsetY = offsetY * 0.7
+            if (opacity >= 1) {
+              mainWindow.setOpacity(1)
+              mainWindow.setPosition(x, y, true)
+              pause()
+            } else {
+              mainWindow.setOpacity(opacity)
+              mainWindow.setPosition(Math.floor(x - offsetX), Math.floor(y - offsetY), true)
+            }
+          }, windowConfig.animate?.duration ?? 16)
+        })
+      }
+    } else {
+      if (options.bound?.width || options.bound?.height) {
+        mainWindow.setBounds({
+          height: options.bound?.height,
+          width: options.bound?.width,
+          x,
+          y
+        })
+      } else {
+        mainWindow.setPosition(x, y)
+      }
     }
 
     mainWindow.show()
+  })
+
+  mainWindow.on('closed', () => {
+    // 如果你在 context 或其它地方保存了引用，清理它
+    windowMap.delete(options.id!)
+    if (context.mainWindow === mainWindow) {
+      context.mainWindow = undefined
+      // mainWindow 被销毁了，所有的 windowMap 里的引用都应该被清理掉
+      windowMap.forEach((win, id) => {
+        windowMap.delete(id)
+        win.removeAllListeners()
+        win.destroy()
+      })
+    } else {
+      mainWindow.removeAllListeners()
+      mainWindow.destroy()
+    }
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -141,11 +230,10 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
     const filePath = join(
       process.env.ELECTRON_RENDERER_URL,
-      `${options.hashRoute ? `#${options.hashRoute}` : ''}?${new URLSearchParams(options.params).toString()}`,
+      `${options.hashRoute ? `#${options.hashRoute}` : ''}?${new URLSearchParams(options.params).toString()}`
     )
     mainWindow.loadURL(filePath)
-  }
-  else {
+  } else {
     const filePath = options.params
       ? `renderer/index.html${options.hashRoute ? `#${options.hashRoute}` : ''}?${new URLSearchParams(options.params).toString()}`
       : `renderer/index.html${options.hashRoute ? `#${options.hashRoute}` : ''}`

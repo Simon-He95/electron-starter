@@ -141,6 +141,7 @@ Requirements coverage
 - 提供运行/打包脚本示例（基于 package.json）： Done
 
 如果你希望我把 README 的某一部分改为英文，或加入截图和更详细的 API 文档，我可以继续完善。
+
 <h1 align="center">electron-app</h1>
 
 <p align="center">An Electron application with Vue3 and TypeScript</p>
