@@ -18,7 +18,7 @@ export const api = {
     return ipcRenderer.invoke(channel as string, ...args) as Promise<
       Awaited<ReturnType<IPCInvokeMap[K]>>
     >
-  }
+  },
 }
 
 // token helper exposed to renderer
@@ -26,12 +26,12 @@ export const token = {
   async get() {
     return await tokenDao.getToken()
   },
+  async remove() {
+    return await tokenDao.removeToken()
+  },
   async set(value: string) {
     return await tokenDao.setToken(value)
   },
-  async remove() {
-    return await tokenDao.removeToken()
-  }
 }
 
 // expose username helpers as well
@@ -39,12 +39,12 @@ Object.assign(token, {
   async getUsername() {
     return await tokenDao.getUsername()
   },
+  async removeUsername() {
+    return await tokenDao.removeUsername()
+  },
   async setUsername(name: string) {
     return await tokenDao.setUsername(name)
   },
-  async removeUsername() {
-    return await tokenDao.removeUsername()
-  }
 })
 
 // 导出类型，供声明文件/renderer 引用
@@ -56,12 +56,14 @@ export type PreloadAPI = typeof api
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
-  contextBridge.exposeInMainWorld('api', api)
-  contextBridge.exposeInMainWorld('token', token)
-  } catch (error) {
+    contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('token', token)
+  }
+  catch (error) {
     console.error(error)
   }
-} else {
+}
+else {
   // @ts-expect-error (define in dts)
   window.electron = electronAPI
   // @ts-expect-error (define in dts)

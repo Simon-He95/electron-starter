@@ -13,11 +13,13 @@ export const useAuthStore = defineStore('auth', () => {
         // store token via preload/token
         // @ts-expect-error token is injected by preload
         await window.token.set(t)
-      } else {
-        // @ts-expect-error
+      }
+      else {
+        // @ts-expect-error token is injected by preload
         await window.token.remove()
       }
-    } catch (e) {
+    }
+    catch (e) {
       console.error('token storage failed', e)
     }
   }
@@ -26,13 +28,15 @@ export const useAuthStore = defineStore('auth', () => {
     username.value = name
     try {
       if (name) {
-        // @ts-expect-error
+        // @ts-expect-error token is injected by preload
         await window.token.setUsername(name)
-      } else {
-        // @ts-expect-error
+      }
+      else {
+        // @ts-expect-error token is injected by preload
         await window.token.removeUsername()
       }
-    } catch (e) {
+    }
+    catch (e) {
       console.error('username storage failed', e)
     }
   }
@@ -40,18 +44,22 @@ export const useAuthStore = defineStore('auth', () => {
   async function init() {
     loading.value = true
     try {
-      // @ts-expect-error
+      // @ts-expect-error token is injected by preload
       const t = await window.token.get()
-      if (t) token.value = t
-    // @ts-expect-error
-    const u = await window.token.getUsername()
-    if (u) username.value = u
-    } catch (e) {
+      if (t)
+        token.value = t
+      // @ts-expect-error token is injected by preload
+      const u = await window.token.getUsername()
+      if (u)
+        username.value = u
+    }
+    catch (e) {
       console.error('failed to read token', e)
-    } finally {
+    }
+    finally {
       loading.value = false
     }
   }
 
-  return { token, loading, username, setToken, setUsername, init }
+  return { init, loading, setToken, setUsername, token, username }
 })

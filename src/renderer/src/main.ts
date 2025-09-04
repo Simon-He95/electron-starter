@@ -1,19 +1,19 @@
-import { createPinia, setActivePinia } from 'pinia'
+import { useAuthStore } from '@stores/auth'
 
+import { createPinia, setActivePinia } from 'pinia'
 // @ts-expect-error -- IGNORE --
 import routes from 'virtual:generated-pages'
 import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import App from './App.vue'
-import { useAuthStore } from '@stores/auth'
 
-import './assets/main.css'
+import './styles/index.css'
 
 const pinia = createPinia()
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
-  routes
+  routes,
 })
 
 ;(async () => {
@@ -29,7 +29,8 @@ const router = createRouter({
 
   // If user navigates to /login but already has token, redirect to '/'
   router.beforeEach((to) => {
-    if (to.path === '/login' && auth.token) return { path: '/' }
+    if (to.path === '/login' && auth.token)
+      return { path: '/' }
     return true
   })
 
