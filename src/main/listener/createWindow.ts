@@ -7,15 +7,21 @@ import { useInterval } from 'lazy-js-utils'
 import icon from '../../../resources/icon.png?asset'
 import { context } from '../index.js'
 
-const windowMap = new Map<string, BrowserWindow>()
-const relationMap = new Map<string, { id: string; setPosition: () => void }[]>()
+const windowMap = new Map<
+  string,
+  {
+    mainWindow: BrowserWindow
+    type: WindowOptions['type']
+  }
+>()
+const relationMap = new Map<string, { id: string; setPosition: (useAnimate?: boolean) => void }[]>()
 const moveThrottleMap = new Map<string, { timeout?: NodeJS.Timeout; last?: number }>()
 const DEFAULT_THROTTLE_MS = 50
 
 function getKeyForWindow(win?: BrowserWindow): string | undefined {
   if (!win) return undefined
   for (const [key, w] of windowMap.entries()) {
-    if (w === win) return key
+    if (w.mainWindow === win) return key
   }
   return undefined
 }
@@ -56,9 +62,9 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
   // 当设置了 bound 时，parent 不应该生效，因为有 parent 的话，window 会出现在 parent 的中央
   if (options.id && windowMap.has(options.id)) {
     const win = windowMap.get(options.id)!
-    if (!win.isDestroyed()) {
-      win.focus()
-      return win
+    if (!win.mainWindow.isDestroyed()) {
+      win.mainWindow.focus()
+      return win.mainWindow
     }
   }
 
@@ -91,7 +97,10 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
   const mainWindow = new BrowserWindow(windowConfig)
 
   const idKey = options.id || `$$${mainWindow.id}`
-  windowMap.set(idKey, mainWindow)
+  windowMap.set(idKey, {
+    mainWindow,
+    type: options.type || 'center'
+  })
 
   function getParent() {
     // find the parent key in relationMap whose children list contains this window idKey
@@ -105,7 +114,7 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
 
     const parent =
       foundPid && windowMap.has(String(foundPid))
-        ? windowMap.get(String(foundPid))
+        ? windowMap.get(String(foundPid))?.mainWindow
         : options.windowConfig?.parent || BrowserWindow.getFocusedWindow() || context.mainWindow
 
     return parent
@@ -132,60 +141,80 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
     }
     let x, y
     if (!options.type || options.type === 'center') {
-      x =
+      x = Math.max(
         (parentBounds.x ?? 0) +
-        ((parentBounds.width ?? 0) - (mainWindow.getBounds().width ?? 0)) / 2
-      y =
+          ((parentBounds.width ?? 0) - (mainWindow.getBounds().width ?? 0)) / 2,
+        0
+      )
+      y = Math.max(
         (parentBounds.y ?? 0) +
-        ((parentBounds.height ?? 0) - (mainWindow.getBounds().height ?? 0)) / 2
+          ((parentBounds.height ?? 0) - (mainWindow.getBounds().height ?? 0)) / 2,
+        0
+      )
     } else if (options.type === 'left-top-in') {
       x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0)
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
     } else if (options.type === 'left-top-out') {
-      x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0) - (mainWindow.getBounds().width ?? 0)
+      x = Math.max(
+        (parentBounds.x ?? 0) + (options.bound?.x ?? 0) - (mainWindow.getBounds().width ?? 0),
+        0
+      )
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
     } else if (options.type === 'right-top-out') {
-      x = (parentBounds.x ?? 0) + (parentBounds.width ?? 0) - (options.bound?.x ?? 0)
+      x = Math.max((parentBounds.x ?? 0) + (parentBounds.width ?? 0) - (options.bound?.x ?? 0), 0)
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
     } else if (options.type === 'right-top-in') {
-      x =
+      x = Math.max(
         (parentBounds.x ?? 0) +
-        (parentBounds.width ?? 0) -
-        (options.bound?.x ?? 0) -
-        (mainWindow.getBounds().width ?? 0)
+          (parentBounds.width ?? 0) -
+          (options.bound?.x ?? 0) -
+          (mainWindow.getBounds().width ?? 0),
+        0
+      )
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
     } else if (options.type === 'left-bottom-in') {
       x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0)
-      y =
+      y = Math.max(
         (parentBounds.y ?? 0) +
-        (parentBounds.height ?? 0) -
-        (options.bound?.y ?? 0) -
-        (mainWindow.getBounds().height ?? 0)
+          (parentBounds.height ?? 0) -
+          (options.bound?.y ?? 0) -
+          (mainWindow.getBounds().height ?? 0),
+        0
+      )
     } else if (options.type === 'left-bottom-out') {
-      x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0) - (mainWindow.getBounds().width ?? 0)
-      y =
+      x = Math.max(
+        (parentBounds.x ?? 0) + (options.bound?.x ?? 0) - (mainWindow.getBounds().width ?? 0),
+        0
+      )
+      y = Math.max(
         (parentBounds.y ?? 0) +
-        (parentBounds.height ?? 0) -
-        (options.bound?.y ?? 0) -
-        (mainWindow.getBounds().height ?? 0)
+          (parentBounds.height ?? 0) -
+          (options.bound?.y ?? 0) -
+          (mainWindow.getBounds().height ?? 0),
+        0
+      )
     } else if (options.type === 'right-bottom-out') {
-      x = (parentBounds.x ?? 0) + (parentBounds.width ?? 0) - (options.bound?.x ?? 0)
-      y =
+      x = Math.max((parentBounds.x ?? 0) + (parentBounds.width ?? 0) - (options.bound?.x ?? 0), 0)
+      y = Math.max(
         (parentBounds.y ?? 0) +
-        (parentBounds.height ?? 0) -
-        (options.bound?.y ?? 0) -
-        (mainWindow.getBounds().height ?? 0)
+          (parentBounds.height ?? 0) -
+          (options.bound?.y ?? 0) -
+          (mainWindow.getBounds().height ?? 0),
+        0
+      )
     } else if (options.type === 'right-bottom-in') {
       x =
         (parentBounds.x ?? 0) +
         (parentBounds.width ?? 0) -
         (options.bound?.x ?? 0) -
         (mainWindow.getBounds().width ?? 0)
-      y =
+      y = Math.max(
         (parentBounds.y ?? 0) +
-        (parentBounds.height ?? 0) -
-        (options.bound?.y ?? 0) -
-        (mainWindow.getBounds().height ?? 0)
+          (parentBounds.height ?? 0) -
+          (options.bound?.y ?? 0) -
+          (mainWindow.getBounds().height ?? 0),
+        0
+      )
     } else {
       throw new Error(`type: [${options.type}] is not supported`)
     }
@@ -298,8 +327,8 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
       // mainWindow 被销毁了，所有的 windowMap 里的引用都应该被清理掉
       windowMap.forEach((win, id) => {
         windowMap.delete(id)
-        win.removeAllListeners()
-        win.destroy()
+        win.mainWindow.removeAllListeners()
+        win.mainWindow.destroy()
       })
     } else {
       mainWindow.removeAllListeners()
@@ -309,11 +338,10 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
 
   mainWindow.on('move', () => {
     const pid = idKey
+    if (!relationMap.has(pid)) return
     scheduleThrottledMove(pid, () => {
-      if (relationMap.has(pid)) {
-        const children = relationMap.get(pid)!
-        children.forEach((child) => child.setPosition())
-      }
+      const children = relationMap.get(pid)!
+      children.forEach((child) => child.setPosition(false))
     })
   })
 
@@ -324,19 +352,127 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
 
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
-
+  const params = Object.assign(options.params || {}, { __winId: mainWindow.id })
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
     const filePath = join(
       process.env.ELECTRON_RENDERER_URL,
-      `${options.hashRoute ? `#${options.hashRoute}` : ''}?${new URLSearchParams(options.params).toString()}`
+      `${options.hashRoute ? `#${options.hashRoute}` : ''}?${new URLSearchParams(params).toString()}`
     )
     mainWindow.loadURL(filePath)
   } else {
     const filePath = options.params
-      ? `renderer/index.html${options.hashRoute ? `#${options.hashRoute}` : ''}?${new URLSearchParams(options.params).toString()}`
+      ? `renderer/index.html${options.hashRoute ? `#${options.hashRoute}` : ''}?${new URLSearchParams(params).toString()}`
       : `renderer/index.html${options.hashRoute ? `#${options.hashRoute}` : ''}`
     mainWindow.loadFile(join(__dirname, '..', filePath))
   }
 
   return mainWindow
+}
+
+export function updateWindowBounds(options: {
+  id: string
+  bounds: {
+    width?: number
+    height?: number
+  }
+}) {
+  const idKey = windowMap.has(options.id) ? options.id : `$$${options.id}`
+  const win = windowMap.get(idKey)
+  if (!win?.mainWindow || win.mainWindow.isDestroyed()) return false
+  const type = win.type
+  const bounds = win.mainWindow.getBounds()
+  if (type === 'center') {
+    // 居中情况下, 更新 width 、 height 时，仍然保持居中
+    // 如果设置了宽度和高度， 移动位置应该是原本 x 和 y 减去宽高变化的一半
+    if (options.bounds.width) {
+      bounds.x = bounds.x - (options.bounds.width - bounds.width) / 2
+      bounds.width = options.bounds.width
+    }
+    if (options.bounds.height) {
+      bounds.y = bounds.y - (options.bounds.height - bounds.height) / 2
+      bounds.height = options.bounds.height
+    }
+    win.mainWindow.setBounds(bounds)
+  } else if (type === 'left-top-in') {
+    // 左上角内侧， 更新 width 、 height 时，保持左上角位置不变 直接更新宽高
+    if (options.bounds.width) {
+      bounds.width = options.bounds.width
+    }
+    if (options.bounds.height) {
+      bounds.height = options.bounds.height
+    }
+    win.mainWindow.setBounds(bounds)
+  } else if (type === 'left-top-out') {
+    // 左上角外侧， 更新 width 、 height 时，保持左上角位置不变 x 需要加上宽度的变化
+    if (options.bounds.width) {
+      bounds.x = Math.max(bounds.x - (options.bounds.width - bounds.width), 0)
+      bounds.width = options.bounds.width
+    }
+    if (options.bounds.height) {
+      bounds.height = options.bounds.height
+    }
+    win.mainWindow.setBounds(bounds)
+  } else if (type === 'right-top-out') {
+    // 右上角外侧， 更新 width 、 height 时，保持右上角位置不变 x 需要减去宽度的变化
+    if (options.bounds.width) {
+      bounds.width = options.bounds.width
+    }
+    if (options.bounds.height) {
+      bounds.height = options.bounds.height
+    }
+    win.mainWindow.setBounds(bounds)
+  } else if (type === 'right-top-in') {
+    // 右上角内侧， 更新 width 、 height 时，保持右上角位置不变 x 需要加上宽度的变化
+    if (options.bounds.width) {
+      bounds.x = Math.max(bounds.x - (options.bounds.width - bounds.width), 0)
+      bounds.width = options.bounds.width
+    }
+    if (options.bounds.height) {
+      bounds.height = options.bounds.height
+    }
+    win.mainWindow.setBounds(bounds)
+  } else if (type === 'left-bottom-in') {
+    // 左下角内侧， 更新 width 、 height 时，保持左下角位置不变 y 需要加上高度的变化
+    if (options.bounds.width) {
+      bounds.width = options.bounds.width
+    }
+    if (options.bounds.height) {
+      bounds.y = bounds.y - (options.bounds.height - bounds.height)
+      bounds.height = options.bounds.height
+    }
+    win.mainWindow.setBounds(bounds)
+  } else if (type === 'left-bottom-out') {
+    // 左下角外侧， 更新 width 、 height 时，保持左下角位置不变 x 需要加上宽度的变化，y 需要加上高度的变化
+    if (options.bounds.width) {
+      bounds.x = Math.max(bounds.x - (options.bounds.width - bounds.width), 0)
+      bounds.width = options.bounds.width
+    }
+    if (options.bounds.height) {
+      bounds.y = Math.max(bounds.y - (options.bounds.height - bounds.height), 0)
+      bounds.height = options.bounds.height
+    }
+    win.mainWindow.setBounds(bounds)
+  } else if (type === 'right-bottom-out') {
+    // 右下角外侧， 更新 width 、 height 时，保持右下角位置不变 x 需要减去宽度的变化，y 需要加上高度的变化
+    if (options.bounds.width) {
+      bounds.width = options.bounds.width
+    }
+    if (options.bounds.height) {
+      bounds.y = Math.max(bounds.y - (options.bounds.height - bounds.height), 0)
+      bounds.height = options.bounds.height
+    }
+    win.mainWindow.setBounds(bounds)
+  } else if (type === 'right-bottom-in') {
+    // 右下角内侧， 更新 width 、 height 时，保持右下角位置不变 x 需要减去宽度的变化，y 需要加上高度的变化
+    if (options.bounds.width) {
+      bounds.x = Math.max(bounds.x - (options.bounds.width - bounds.width), 0)
+      bounds.width = options.bounds.width
+    }
+    if (options.bounds.height) {
+      bounds.y = Math.max(bounds.y - (options.bounds.height - bounds.height), 0)
+      bounds.height = options.bounds.height
+    }
+    win.mainWindow.setBounds(bounds)
+  }
+  return true
 }

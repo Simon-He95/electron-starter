@@ -34,5 +34,9 @@ export type CreateWindowOpts = WindowOptions
  */
 export interface IPCInvokeMap {
   ping: (event: IpcMainInvokeEvent, ...args: any[]) => void
-  createWindow: (event: IpcMainInvokeEvent, opts: CreateWindowOpts) => void
+  createWindow: (event: IpcMainInvokeEvent, opts: CreateWindowOpts) => number
+  updateWindowBounds: (
+    event: IpcMainInvokeEvent,
+    options: { id: string; bounds: { width?: number; height?: number } }
+  ) => boolean
 }

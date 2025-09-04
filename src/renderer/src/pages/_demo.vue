@@ -1,8 +1,19 @@
 <script setup lang="ts">
 import useCountStore from '@stores/count'
+import { ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { Button } from '../components/shadcn/ui/button'
 
 const countStore = useCountStore()
+const routes = useRoute()
+const winId = routes.query.__winId as string
+const isSuccessed = ref<boolean>()
+async function updateSize(type: 'large' | 'small') {
+  isSuccessed.value = await window.api.send('updateWindowBounds', {
+    id: winId,
+    bounds: { width: type === 'large' ? 800 : 200, height: type === 'large' ? 600 : 200 }
+  })
+}
 </script>
 
 <template>
@@ -19,6 +30,11 @@ const countStore = useCountStore()
       <Button variant="secondary" @click="countStore.increment">
         Click me ({{ countStore.count }})
       </Button>
+      <Button @click="updateSize('large')"> 放大 </Button>
+      <Button @click="updateSize('small')"> 缩小 </Button>
+    </div>
+    <div class="text-center">
+      {{ typeof isSuccessed === 'boolean' ? (isSuccessed ? '操作成功' : '操作失败') : '' }}
     </div>
   </div>
 </template>
