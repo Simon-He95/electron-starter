@@ -4,11 +4,53 @@ import process from 'node:process'
 import { is } from '@electron-toolkit/utils'
 import { BrowserWindow, shell } from 'electron'
 import { useInterval } from 'lazy-js-utils'
-import { v4 } from 'uuid'
 import icon from '../../../resources/icon.png?asset'
 import { context } from '../index.js'
 
 const windowMap = new Map<string, BrowserWindow>()
+const relationMap = new Map<string, { id: string; setPosition: () => void }[]>()
+const moveThrottleMap = new Map<string, { timeout?: NodeJS.Timeout; last?: number }>()
+const DEFAULT_THROTTLE_MS = 50
+
+function getKeyForWindow(win?: BrowserWindow): string | undefined {
+  if (!win) return undefined
+  for (const [key, w] of windowMap.entries()) {
+    if (w === win) return key
+  }
+  return undefined
+}
+
+function clearThrottle(key: string) {
+  const entry = moveThrottleMap.get(key)
+  if (entry?.timeout) {
+    clearTimeout(entry.timeout)
+  }
+  moveThrottleMap.delete(key)
+}
+
+function scheduleThrottledMove(key: string, invoke: () => void, ms = DEFAULT_THROTTLE_MS) {
+  const entry = moveThrottleMap.get(key) ?? { last: 0, timeout: undefined }
+  const now = Date.now()
+
+  if (entry.last && now - entry.last < ms) {
+    if (entry.timeout) return
+    entry.timeout = setTimeout(
+      () => {
+        entry.last = Date.now()
+        entry.timeout = undefined
+        moveThrottleMap.set(key, entry)
+        invoke()
+      },
+      ms - (now - (entry.last || 0))
+    )
+    moveThrottleMap.set(key, entry)
+    return
+  }
+
+  entry.last = now
+  moveThrottleMap.set(key, entry)
+  invoke()
+}
 export function createWindow(options: WindowOptions = { windowConfig: {} }) {
   // Create the browser window.
   // 当设置了 bound 时，parent 不应该生效，因为有 parent 的话，window 会出现在 parent 的中央
@@ -19,9 +61,7 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
       return win
     }
   }
-  if (!options.id) {
-    options.id = v4()
-  }
+
   const windowConfig = Object.assign(
     {
       alwaysOnTop: true,
@@ -50,18 +90,46 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
   )
   const mainWindow = new BrowserWindow(windowConfig)
 
-  windowMap.set(options.id, mainWindow)
+  const idKey = options.id || `$$${mainWindow.id}`
+  windowMap.set(idKey, mainWindow)
 
-  mainWindow.on('ready-to-show', () => {
-    // 如果有 parent，则相对于 parent 定位
-    const parentBounds =
-      options.windowConfig?.parent?.getBounds() ||
-      BrowserWindow.getFocusedWindow()?.getBounds() ||
-      context.mainWindow?.getBounds()
+  function getParent() {
+    // find the parent key in relationMap whose children list contains this window idKey
+    let foundPid: string | undefined
+    for (const [pid, children] of relationMap.entries()) {
+      if (children && children.some((item) => item.id === idKey)) {
+        foundPid = pid
+        break
+      }
+    }
+
+    const parent =
+      foundPid && windowMap.has(String(foundPid))
+        ? windowMap.get(String(foundPid))
+        : options.windowConfig?.parent || BrowserWindow.getFocusedWindow() || context.mainWindow
+
+    return parent
+  }
+  function setPosition(useAnimate = true) {
+    const parent = getParent()
+    const parentBounds = parent?.getBounds()
     if (!parentBounds) {
       return
     }
+    if (options.isFollowMove && !windowConfig.modal) {
+      // determine parent's key in windowMap (could be a custom options.id or the generated $$id)
+      const parentKey = getKeyForWindow(parent) ?? `$$${parent.id}`
 
+      const id = options.id || `$$${mainWindow.id}`
+      const children = relationMap.has(parentKey) ? relationMap.get(parentKey)! : []
+      if (!children.some((item) => item.id === id)) {
+        children.push({
+          id,
+          setPosition: () => setPosition(false)
+        })
+      }
+      relationMap.set(parentKey, children)
+    }
     let x, y
     if (!options.type || options.type === 'center') {
       x =
@@ -122,7 +190,7 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
       throw new Error(`type: [${options.type}] is not supported`)
     }
 
-    if (windowConfig.animate) {
+    if (useAnimate) {
       let offsetX = windowConfig.animate.offsetX ?? 0
       let offsetY = windowConfig.animate.offsetY ?? -50
       let opacity = 0
@@ -198,13 +266,33 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
         mainWindow.setPosition(x, y)
       }
     }
+  }
+
+  mainWindow.on('ready-to-show', () => {
+    // 如果有 parent，则相对于 parent 定位
+    setPosition(!!windowConfig.animate)
 
     mainWindow.show()
   })
 
   mainWindow.on('closed', () => {
     // 如果你在 context 或其它地方保存了引用，清理它
-    windowMap.delete(options.id!)
+    // use the same idKey we used when registering the window
+    // 删除该 id 下的子 id
+    if (relationMap.has(idKey)) {
+      relationMap.delete(idKey)
+    }
+    // 删除该窗口在父 id 下的引用
+    relationMap.forEach((children, pid) => {
+      const index = children.findIndex((item) => item.id === idKey)
+      if (index > -1) {
+        children.splice(index, 1)
+        relationMap.set(pid, children)
+      }
+    })
+    // 清理该父窗口的节流定时器（如果存在）
+    clearThrottle(idKey)
+    windowMap.delete(idKey)
     if (context.mainWindow === mainWindow) {
       context.mainWindow = undefined
       // mainWindow 被销毁了，所有的 windowMap 里的引用都应该被清理掉
@@ -217,6 +305,16 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
       mainWindow.removeAllListeners()
       mainWindow.destroy()
     }
+  })
+
+  mainWindow.on('move', () => {
+    const pid = idKey
+    scheduleThrottledMove(pid, () => {
+      if (relationMap.has(pid)) {
+        const children = relationMap.get(pid)!
+        children.forEach((child) => child.setPosition())
+      }
+    })
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {

@@ -24,6 +24,7 @@ export interface WindowOptions {
   bound?: Partial<Electron.Rectangle>
   hashRoute?: string
   id?: string
+  isFollowMove?: boolean // 是否跟随父窗口移动
 }
 
 export type CreateWindowOpts = WindowOptions

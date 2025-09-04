@@ -55,6 +55,7 @@ async function newWindow(
       height: 300,
       width: 400
     },
+    isFollowMove: true,
     params: {
       data: 'hello'
     }
