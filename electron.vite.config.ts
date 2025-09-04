@@ -13,31 +13,31 @@ export default defineConfig({
       minify: false,
       rollupOptions: {
         output: {
-          format: 'cjs',
-        },
-      },
-    },
+          format: 'cjs'
+        }
+      }
+    }
   },
   preload: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [externalizeDepsPlugin()]
   },
   renderer: {
     build: {
-      assetsDir: 'assets',
+      assetsDir: 'assets'
     },
     resolve: {
       alias: {
         '@renderer': resolve('src/renderer/src'),
         '@stores': resolve('src/renderer/src/stores'),
         '@utils': resolve('src/renderer/src/utils'),
-        '@shadcn': resolve('src/renderer/src/components/shadcn/ui'),
-      },
+        '@shadcn': resolve('src/renderer/src/components/shadcn/ui')
+      }
     },
     css: {
       postcss: {
-        plugins: [tailwind(), autoprefixer()],
-      },
+        plugins: [tailwind(), autoprefixer()]
+      }
     },
-    plugins: [vue(), Pages(), vueDevTools()],
-  },
+    plugins: [vue(), Pages(), vueDevTools()]
+  }
 })

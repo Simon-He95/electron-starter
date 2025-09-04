@@ -1,13 +1,5 @@
 <script setup lang="ts">
-import { useAlertStore } from '@renderer/stores/alert'
-// ...existing code...
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@shadcn/form'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@shadcn/form'
 import { Input } from '@shadcn/input'
 import { useAuthStore } from '@stores/auth'
 import { toTypedSchema } from '@vee-validate/zod'
@@ -22,37 +14,37 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
+  CardTitle
 } from '../components/shadcn/ui/card'
 
 const router = useRouter()
 const auth = useAuthStore()
-const usernameRef = ref<{ focus?: () => void, el?: HTMLInputElement | null } | null>(null)
+const usernameRef = ref<{ focus?: () => void; el?: HTMLInputElement | null } | null>(null)
 const loading = ref(false)
 
 onMounted(() => {
   // if token already present after auth.init(), redirect away from login
   if (auth.token) {
     router.replace({ path: '/' })
-  }
-  else {
+  } else {
     usernameRef.value?.focus?.()
   }
 })
-const { show } = useAlertStore()
-show('success', 'This is a success alert!')
+
 // fake login function that returns a token after a small delay; only username required
 async function fakeLogin(user: string) {
-  await new Promise(r => setTimeout(r, 300))
-  if (user)
-    return `token-${btoa(user)}`
+  await new Promise((r) => setTimeout(r, 300))
+  if (user) return `token-${btoa(user)}`
   throw new Error('Invalid username')
 }
 // Vee-validate + zod schema
 const formSchema = toTypedSchema(
   z.object({
-    username: z.string().min(1, 'Please enter a username').regex(/^\S+$/, 'Username cannot contain spaces'),
-  }),
+    username: z
+      .string()
+      .min(1, 'Please enter a username')
+      .regex(/^\S+$/, 'Username cannot contain spaces')
+  })
 )
 
 const { handleSubmit, values, resetForm, meta } = useForm({ validationSchema: formSchema })
@@ -64,12 +56,10 @@ const onSubmit = handleSubmit(async (vals) => {
     await auth.setToken(t)
     await auth.setUsername(vals.username)
     await router.replace({ path: '/' })
-  }
-  catch (e) {
+  } catch (e) {
     // eslint-disable-next-line no-console
     console.log(e)
-  }
-  finally {
+  } finally {
     loading.value = false
   }
 })
@@ -94,7 +84,13 @@ function reset() {
               <FormItem>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input v-bind="componentField" id="username" ref="usernameRef" placeholder="Your username" aria-required="true" />
+                  <Input
+                    v-bind="componentField"
+                    id="username"
+                    ref="usernameRef"
+                    placeholder="Your username"
+                    aria-required="true"
+                  />
                 </FormControl>
                 <div class="min-h-[1.25rem] overflow-hidden transition-all duration-150">
                   <FormMessage />
@@ -105,10 +101,12 @@ function reset() {
         </form>
       </CardContent>
       <CardFooter class="flex items-center justify-between px-6 pb-6">
-        <Button variant="outline" @click="reset">
-          Cancel
-        </Button>
-        <Button :disabled="loading || !values.username || !meta.valid" class="ml-2" @click="onSubmit">
+        <Button variant="outline" @click="reset"> Cancel </Button>
+        <Button
+          :disabled="loading || !values.username || !meta.valid"
+          class="ml-2"
+          @click="onSubmit"
+        >
           {{ loading ? 'Signing in...' : 'Continue' }}
         </Button>
       </CardFooter>

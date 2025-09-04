@@ -4,10 +4,10 @@ export interface WindowOptions {
   windowConfig: Omit<BrowserWindowConstructorOptions, 'webPreferences' | 'x' | 'y'> & {
     animate?:
       | {
-        offsetX: number
-        offsetY: number
-        duration?: number
-      }
+          offsetX: number
+          offsetY: number
+          duration?: number
+        }
       | boolean
   }
   params?: Record<string, any>

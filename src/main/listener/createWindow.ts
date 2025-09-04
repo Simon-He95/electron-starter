@@ -28,7 +28,7 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
       animate: {
         duration: 16,
         offsetX: 0,
-        offsetY: -50,
+        offsetY: -50
       },
       autoHideMenuBar: true,
       closable: true,
@@ -38,15 +38,15 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
       ...(process.platform === 'linux' ? { icon } : {}),
       webPreferences: {
         preload: join(__dirname, '../preload/index.mjs'),
-        sandbox: false,
-      },
+        sandbox: false
+      }
     },
     options.windowConfig,
     {
       modal:
         (options.windowConfig?.modal ?? options.bound?.x) ? false : !!options.windowConfig?.parent,
-      parent: options.bound?.x ? undefined : options.windowConfig?.parent,
-    },
+      parent: options.bound?.x ? undefined : options.windowConfig?.parent
+    }
   )
   const mainWindow = new BrowserWindow(windowConfig)
 
@@ -54,80 +54,71 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
 
   mainWindow.on('ready-to-show', () => {
     // 如果有 parent，则相对于 parent 定位
-    const parentBounds
-      = options.windowConfig?.parent?.getBounds()
-        || BrowserWindow.getFocusedWindow()?.getBounds()
-        || context.mainWindow?.getBounds()
+    const parentBounds =
+      options.windowConfig?.parent?.getBounds() ||
+      BrowserWindow.getFocusedWindow()?.getBounds() ||
+      context.mainWindow?.getBounds()
     if (!parentBounds) {
       return
     }
 
     let x, y
     if (!options.type || options.type === 'center') {
-      x
-        = (parentBounds.x ?? 0)
-          + ((parentBounds.width ?? 0) - (mainWindow.getBounds().width ?? 0)) / 2
-      y
-        = (parentBounds.y ?? 0)
-          + ((parentBounds.height ?? 0) - (mainWindow.getBounds().height ?? 0)) / 2
-    }
-    else if (options.type === 'left-top-in') {
+      x =
+        (parentBounds.x ?? 0) +
+        ((parentBounds.width ?? 0) - (mainWindow.getBounds().width ?? 0)) / 2
+      y =
+        (parentBounds.y ?? 0) +
+        ((parentBounds.height ?? 0) - (mainWindow.getBounds().height ?? 0)) / 2
+    } else if (options.type === 'left-top-in') {
       x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0)
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
-    }
-    else if (options.type === 'left-top-out') {
+    } else if (options.type === 'left-top-out') {
       x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0) - (mainWindow.getBounds().width ?? 0)
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
-    }
-    else if (options.type === 'right-top-out') {
+    } else if (options.type === 'right-top-out') {
       x = (parentBounds.x ?? 0) + (parentBounds.width ?? 0) - (options.bound?.x ?? 0)
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
-    }
-    else if (options.type === 'right-top-in') {
-      x
-        = (parentBounds.x ?? 0)
-          + (parentBounds.width ?? 0)
-          - (options.bound?.x ?? 0)
-          - (mainWindow.getBounds().width ?? 0)
+    } else if (options.type === 'right-top-in') {
+      x =
+        (parentBounds.x ?? 0) +
+        (parentBounds.width ?? 0) -
+        (options.bound?.x ?? 0) -
+        (mainWindow.getBounds().width ?? 0)
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
-    }
-    else if (options.type === 'left-bottom-in') {
+    } else if (options.type === 'left-bottom-in') {
       x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0)
-      y
-        = (parentBounds.y ?? 0)
-          + (parentBounds.height ?? 0)
-          - (options.bound?.y ?? 0)
-          - (mainWindow.getBounds().height ?? 0)
-    }
-    else if (options.type === 'left-bottom-out') {
+      y =
+        (parentBounds.y ?? 0) +
+        (parentBounds.height ?? 0) -
+        (options.bound?.y ?? 0) -
+        (mainWindow.getBounds().height ?? 0)
+    } else if (options.type === 'left-bottom-out') {
       x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0) - (mainWindow.getBounds().width ?? 0)
-      y
-        = (parentBounds.y ?? 0)
-          + (parentBounds.height ?? 0)
-          - (options.bound?.y ?? 0)
-          - (mainWindow.getBounds().height ?? 0)
-    }
-    else if (options.type === 'right-bottom-out') {
+      y =
+        (parentBounds.y ?? 0) +
+        (parentBounds.height ?? 0) -
+        (options.bound?.y ?? 0) -
+        (mainWindow.getBounds().height ?? 0)
+    } else if (options.type === 'right-bottom-out') {
       x = (parentBounds.x ?? 0) + (parentBounds.width ?? 0) - (options.bound?.x ?? 0)
-      y
-        = (parentBounds.y ?? 0)
-          + (parentBounds.height ?? 0)
-          - (options.bound?.y ?? 0)
-          - (mainWindow.getBounds().height ?? 0)
-    }
-    else if (options.type === 'right-bottom-in') {
-      x
-        = (parentBounds.x ?? 0)
-          + (parentBounds.width ?? 0)
-          - (options.bound?.x ?? 0)
-          - (mainWindow.getBounds().width ?? 0)
-      y
-        = (parentBounds.y ?? 0)
-          + (parentBounds.height ?? 0)
-          - (options.bound?.y ?? 0)
-          - (mainWindow.getBounds().height ?? 0)
-    }
-    else {
+      y =
+        (parentBounds.y ?? 0) +
+        (parentBounds.height ?? 0) -
+        (options.bound?.y ?? 0) -
+        (mainWindow.getBounds().height ?? 0)
+    } else if (options.type === 'right-bottom-in') {
+      x =
+        (parentBounds.x ?? 0) +
+        (parentBounds.width ?? 0) -
+        (options.bound?.x ?? 0) -
+        (mainWindow.getBounds().width ?? 0)
+      y =
+        (parentBounds.y ?? 0) +
+        (parentBounds.height ?? 0) -
+        (options.bound?.y ?? 0) -
+        (mainWindow.getBounds().height ?? 0)
+    } else {
       throw new Error(`type: [${options.type}] is not supported`)
     }
 
@@ -142,9 +133,9 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
             height: options.bound?.height,
             width: options.bound?.width,
             x: Math.floor(x - offsetX),
-            y: Math.floor(y - offsetY),
+            y: Math.floor(y - offsetY)
           },
-          true,
+          true
         )
         setTimeout(() => {
           const { pause } = useInterval(() => {
@@ -158,28 +149,26 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
                   height: options.bound?.height,
                   width: options.bound?.width,
                   x,
-                  y,
+                  y
                 },
-                true,
+                true
               )
               pause()
-            }
-            else {
+            } else {
               mainWindow.setOpacity(opacity)
               mainWindow.setBounds(
                 {
                   height: options.bound?.height,
                   width: options.bound?.width,
                   x: Math.floor(x - offsetX),
-                  y: Math.floor(y - offsetY),
+                  y: Math.floor(y - offsetY)
                 },
-                true,
+                true
               )
             }
           }, windowConfig.animate?.duration ?? 16)
         })
-      }
-      else {
+      } else {
         mainWindow.setPosition(Math.floor(x - offsetX), Math.floor(y - offsetY), true)
         setTimeout(() => {
           const { pause } = useInterval(() => {
@@ -190,25 +179,22 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
               mainWindow.setOpacity(1)
               mainWindow.setPosition(x, y, true)
               pause()
-            }
-            else {
+            } else {
               mainWindow.setOpacity(opacity)
               mainWindow.setPosition(Math.floor(x - offsetX), Math.floor(y - offsetY), true)
             }
           }, windowConfig.animate?.duration ?? 16)
         })
       }
-    }
-    else {
+    } else {
       if (options.bound?.width || options.bound?.height) {
         mainWindow.setBounds({
           height: options.bound?.height,
           width: options.bound?.width,
           x,
-          y,
+          y
         })
-      }
-      else {
+      } else {
         mainWindow.setPosition(x, y)
       }
     }
@@ -227,8 +213,7 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
         win.removeAllListeners()
         win.destroy()
       })
-    }
-    else {
+    } else {
       mainWindow.removeAllListeners()
       mainWindow.destroy()
     }
@@ -245,11 +230,10 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
     const filePath = join(
       process.env.ELECTRON_RENDERER_URL,
-      `${options.hashRoute ? `#${options.hashRoute}` : ''}?${new URLSearchParams(options.params).toString()}`,
+      `${options.hashRoute ? `#${options.hashRoute}` : ''}?${new URLSearchParams(options.params).toString()}`
     )
     mainWindow.loadURL(filePath)
-  }
-  else {
+  } else {
     const filePath = options.params
       ? `renderer/index.html${options.hashRoute ? `#${options.hashRoute}` : ''}?${new URLSearchParams(options.params).toString()}`
       : `renderer/index.html${options.hashRoute ? `#${options.hashRoute}` : ''}`

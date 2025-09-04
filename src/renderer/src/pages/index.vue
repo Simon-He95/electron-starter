@@ -1,19 +1,37 @@
 <script setup lang="ts">
-import { Button } from '@shadcn/button'
-import { useAuthStore } from '@stores/auth'
 import useCountStore from '@stores/count'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { Button } from '../components/shadcn/ui/button'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../components/shadcn/ui/card'
+import Label from '../components/shadcn/ui/label/Label.vue'
+import Slider from '../components/shadcn/ui/slider/Slider.vue'
 
 const countStore = useCountStore()
-const offset = ref({
-  x: 0,
-  y: 0,
+const offset = ref({ x: 0, y: 0 })
+
+const sliderX = ref<number[]>([offset.value.x])
+const sliderY = ref<number[]>([offset.value.y])
+
+watch(sliderX, (v) => {
+  offset.value.x = v?.[0] ?? 0
 })
-const auth = useAuthStore()
-function logout() {
-  auth.setToken(null)
-  auth.setUsername(null)
-}
+watch(sliderY, (v) => {
+  offset.value.y = v?.[0] ?? 0
+})
+
+watch(
+  () => offset.value.x,
+  (v) => {
+    sliderX.value = [v]
+  }
+)
+watch(
+  () => offset.value.y,
+  (v) => {
+    sliderY.value = [v]
+  }
+)
+
 async function newWindow(
   position:
     | 'left-top-in'
@@ -24,90 +42,60 @@ async function newWindow(
     | 'left-bottom-out'
     | 'right-bottom-in'
     | 'right-bottom-out'
-    | 'center',
+    | 'center'
 ) {
   window.api.send('createWindow', {
     hashRoute: '_demo',
     type: position,
     bound: {
       x: +offset.value.x,
-      y: +offset.value.y,
+      y: +offset.value.y
     },
     windowConfig: {
       height: 300,
-      width: 400,
+      width: 400
     },
     params: {
-      data: 'hello',
-    },
+      data: 'hello'
+    }
   })
 }
 </script>
 
 <template>
-  <div class="flex justify-end p-4">
-    <div v-if="auth.username" class="flex items-center gap-3">
-      <span class="text-sm">{{ auth.username }}</span>
-      <Button variants="destructive" @click="logout">
-        Logout
-      </Button>
-    </div>
-  </div>
-  <img alt="logo" class="logo" src="../assets/electron.svg">
-  <div class="creator" @click="countStore.increment">
-    Powered by electron-vite {{ countStore.count }}
-  </div>
-  <div class="text">
-    Build an Electron app with <span class="vue">Vue</span> and <span class="ts">TypeScript</span>
-  </div>
-  <p class="tip">
-    Please try pressing <code>F12</code> to open the devTool
-  </p>
-  <div class="grid-cols-3 grid grid-flow-row">
-    <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('left-top-in')">new Window on left-top-in</a>
-    </div>
-    <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('left-top-out')">new Window on left-top-out</a>
-    </div>
-    <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('right-top-in')">new Window on right-top-in</a>
-    </div>
-    <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('right-top-out')">new Window on right-top-out</a>
-    </div>
-    <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('left-bottom-in')">new Window on left-bottom-in</a>
-    </div>
-    <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('left-bottom-out')">new Window on left-bottom-out</a>
-    </div>
-    <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('right-bottom-in')">new Window on right-bottom-in</a>
-    </div>
-    <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('right-bottom-out')">new Window on right-bottom-out</a>
-    </div>
-    <div class="action">
-      <a target="_blank" rel="noreferrer" @click="newWindow('center')">new Window on center</a>
-    </div>
-  </div>
-  <div>
-    <div class="mt-4 space-y-2">
-      <div class="flex items-center gap-2">
-        <label class="w-16">offset.x</label>
-        <input v-model="offset.x" type="range" min="-1000" max="1000" step="1">
-        <div class="ml-4">
-          {{ offset.x }}
+  <Card class="max-w-3xl mx-auto mt-8">
+    <CardHeader>
+      <CardTitle>Create a demo window</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div class="creator mb-4" @click="countStore.increment">
+        Powered by electron-vite {{ countStore.count }}
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <Button @click="newWindow('left-top-in')"> left-top-in </Button>
+        <Button @click="newWindow('left-top-out')"> left-top-out </Button>
+        <Button @click="newWindow('right-top-in')"> right-top-in </Button>
+        <Button @click="newWindow('right-top-out')"> right-top-out </Button>
+        <Button @click="newWindow('left-bottom-in')"> left-bottom-in </Button>
+        <Button @click="newWindow('left-bottom-out')"> left-bottom-out </Button>
+        <Button @click="newWindow('right-bottom-in')"> right-bottom-in </Button>
+        <Button @click="newWindow('right-bottom-out')"> right-bottom-out </Button>
+        <Button @click="newWindow('center')"> center </Button>
+      </div>
+
+      <div class="mt-6 space-y-4">
+        <div>
+          <Label>offset.x: {{ offset.x }}</Label>
+          <Slider v-model="sliderX" :min="-1000" :max="1000" :step="1" />
+        </div>
+        <div>
+          <Label>offset.y: {{ offset.y }}</Label>
+          <Slider v-model="sliderY" :min="-1000" :max="1000" :step="1" />
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <label class="w-16">offset.y</label>
-        <input v-model="offset.y" type="range" min="-1000" max="1000" step="1">
-        <div class="ml-4">
-          {{ offset.y }}
-        </div>
-      </div>
-    </div>
-  </div>
+    </CardContent>
+    <CardFooter>
+      <div class="text-sm text-muted-foreground">Press F12 to open devtools</div>
+    </CardFooter>
+  </Card>
 </template>

@@ -13,7 +13,7 @@ const pinia = createPinia()
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
-  routes,
+  routes
 })
 
 ;(async () => {
@@ -29,8 +29,7 @@ const router = createRouter({
 
   // If user navigates to /login but already has token, redirect to '/'
   router.beforeEach((to) => {
-    if (to.path === '/login' && auth.token)
-      return { path: '/' }
+    if (to.path === '/login' && auth.token) return { path: '/' }
     return true
   })
 

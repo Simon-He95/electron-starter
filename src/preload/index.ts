@@ -18,7 +18,7 @@ export const api = {
     return ipcRenderer.invoke(channel as string, ...args) as Promise<
       Awaited<ReturnType<IPCInvokeMap[K]>>
     >
-  },
+  }
 }
 
 // token helper exposed to renderer
@@ -31,7 +31,7 @@ export const token = {
   },
   async set(value: string) {
     return await tokenDao.setToken(value)
-  },
+  }
 }
 
 // expose username helpers as well
@@ -44,7 +44,7 @@ Object.assign(token, {
   },
   async setUsername(name: string) {
     return await tokenDao.setUsername(name)
-  },
+  }
 })
 
 // 导出类型，供声明文件/renderer 引用
@@ -58,12 +58,10 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
     contextBridge.exposeInMainWorld('token', token)
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error)
   }
-}
-else {
+} else {
   // @ts-expect-error (define in dts)
   window.electron = electronAPI
   // @ts-expect-error (define in dts)

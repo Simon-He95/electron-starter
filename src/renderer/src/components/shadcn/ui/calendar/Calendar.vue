@@ -15,7 +15,7 @@ import {
   CalendarHeader,
   CalendarHeading,
   CalendarNextButton,
-  CalendarPrevButton,
+  CalendarPrevButton
 } from '.'
 
 const props = defineProps<CalendarRootProps & { class?: HTMLAttributes['class'] }>()

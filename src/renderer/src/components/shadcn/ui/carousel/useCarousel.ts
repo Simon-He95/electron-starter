@@ -8,9 +8,9 @@ const [useProvideCarousel, useInjectCarousel] = createInjectionState(
     const [emblaNode, emblaApi] = emblaCarouselVue(
       {
         ...opts,
-        axis: orientation === 'horizontal' ? 'x' : 'y',
+        axis: orientation === 'horizontal' ? 'x' : 'y'
       },
-      plugins,
+      plugins
     )
 
     function scrollPrev() {
@@ -29,8 +29,7 @@ const [useProvideCarousel, useInjectCarousel] = createInjectionState(
     }
 
     onMounted(() => {
-      if (!emblaApi.value)
-        return
+      if (!emblaApi.value) return
 
       emblaApi.value?.on('init', onSelect)
       emblaApi.value?.on('reInit', onSelect)
@@ -46,16 +45,15 @@ const [useProvideCarousel, useInjectCarousel] = createInjectionState(
       carouselRef: emblaNode,
       orientation,
       scrollNext,
-      scrollPrev,
+      scrollPrev
     }
-  },
+  }
 )
 
 function useCarousel() {
   const carouselState = useInjectCarousel()
 
-  if (!carouselState)
-    throw new Error('useCarousel must be used within a <Carousel />')
+  if (!carouselState) throw new Error('useCarousel must be used within a <Carousel />')
 
   return carouselState
 }

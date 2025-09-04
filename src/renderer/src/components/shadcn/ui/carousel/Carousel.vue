@@ -4,7 +4,7 @@ import { cn } from '@utils/index'
 import { useProvideCarousel } from './useCarousel'
 
 const props = withDefaults(defineProps<CarouselProps & WithClassAsProps>(), {
-  orientation: 'horizontal',
+  orientation: 'horizontal'
 })
 
 const emits = defineEmits<CarouselEmits>()
@@ -16,7 +16,7 @@ const {
   carouselRef,
   orientation,
   scrollNext,
-  scrollPrev,
+  scrollPrev
 } = useProvideCarousel(props, emits)
 
 defineExpose({
@@ -26,7 +26,7 @@ defineExpose({
   carouselRef,
   orientation,
   scrollNext,
-  scrollPrev,
+  scrollPrev
 })
 
 function onKeyDown(event: KeyboardEvent) {

@@ -8,16 +8,16 @@ const ipcListener = {
     createWindow(
       Object.assign(
         {
-          parent: context.mainWindow,
+          parent: context.mainWindow
         },
-        params,
-      ),
+        params
+      )
     )
   },
   ping: () => {
     // eslint-disable-next-line no-console
     console.log('pong')
-  },
+  }
 } satisfies {
   [K in keyof IPCInvokeMap]: (
     ...args: Parameters<IPCInvokeMap[K]>
