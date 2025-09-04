@@ -2,7 +2,7 @@ import type { IPCInvokeMap } from '../shared/types.js'
 import process from 'node:process'
 import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge, ipcRenderer } from 'electron'
-import { tokenDao } from './dexie/index.js'
+import { registerDexie } from './dexie/index.js'
 
 // Helper: drop the first element of a tuple if present
 type InvokeArgs<T extends any[]> = T extends [any, ...infer R] ? R : T
@@ -20,32 +20,8 @@ export const api = {
     >
   }
 }
-
-// token helper exposed to renderer
-export const token = {
-  async get() {
-    return await tokenDao.getToken()
-  },
-  async remove() {
-    return await tokenDao.removeToken()
-  },
-  async set(value: string) {
-    return await tokenDao.setToken(value)
-  }
-}
-
-// expose username helpers as well
-Object.assign(token, {
-  async getUsername() {
-    return await tokenDao.getUsername()
-  },
-  async removeUsername() {
-    return await tokenDao.removeUsername()
-  },
-  async setUsername(name: string) {
-    return await tokenDao.setUsername(name)
-  }
-})
+// register dexie and expose token api
+registerDexie()
 
 // 导出类型，供声明文件/renderer 引用
 export type PreloadAPI = typeof api
@@ -57,7 +33,6 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
-    contextBridge.exposeInMainWorld('token', token)
   } catch (error) {
     console.error(error)
   }
@@ -66,6 +41,4 @@ if (process.contextIsolated) {
   window.electron = electronAPI
   // @ts-expect-error (define in dts)
   window.api = api
-  // @ts-expect-error (define in dts)
-  window.token = token
 }

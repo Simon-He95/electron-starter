@@ -4,10 +4,11 @@ import { SidebarProvider, SidebarTrigger } from '@shadcn/sidebar'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
+const showSiderBarRoutes = ['/']
 </script>
 
 <template>
-  <SidebarProvider v-if="route.path !== '/login'">
+  <SidebarProvider v-if="showSiderBarRoutes.includes(route.path)">
     <AppSidebar />
     <main class="w-full h-full">
       <SidebarTrigger />

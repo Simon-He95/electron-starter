@@ -6,7 +6,7 @@ const countStore = useCountStore()
 </script>
 
 <template>
-  <div class="prose max-w-2xl mx-auto mt-12 p-6">
+  <div class="prose max-w-2xl mx-auto mt-6 p-6">
     <div class="flex items-center gap-4">
       <img alt="logo" class="logo w-14 h-14" src="../assets/electron.svg" />
       <div>

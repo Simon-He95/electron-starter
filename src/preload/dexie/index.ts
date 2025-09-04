@@ -1,7 +1,9 @@
+// 生成一个 class 作为基础类，支持加密/解密
 import { Buffer } from 'node:buffer'
 import crypto from 'node:crypto'
-// 生成一个 class 作为基础类，支持加密/解密
+import process from 'node:process'
 import * as DexiePkg from 'dexie'
+import { contextBridge } from 'electron'
 
 export interface CipherDaoConfig {
   dbName: string
@@ -99,5 +101,46 @@ export class TokenDao extends CipherDao {
   }
 }
 
-// 导出一个单例，preload 可直接使用
-export const tokenDao = new TokenDao()
+let tokenDao: TokenDao
+export function registerDexie() {
+  // 导出一个单例，preload 可直接使用
+  if (!tokenDao) tokenDao = new TokenDao()
+  else return
+
+  // token helper exposed to renderer
+  const token = {
+    async get() {
+      return await tokenDao.getToken()
+    },
+    async remove() {
+      return await tokenDao.removeToken()
+    },
+    async set(value: string) {
+      return await tokenDao.setToken(value)
+    }
+  }
+
+  // expose username helpers as well
+  Object.assign(token, {
+    async getUsername() {
+      return await tokenDao.getUsername()
+    },
+    async removeUsername() {
+      return await tokenDao.removeUsername()
+    },
+    async setUsername(name: string) {
+      return await tokenDao.setUsername(name)
+    }
+  })
+
+  if (process.contextIsolated) {
+    try {
+      contextBridge.exposeInMainWorld('token', token)
+    } catch (error) {
+      console.error(error)
+    }
+  } else {
+    // @ts-expect-error (define in dts)
+    window.token = token
+  }
+}

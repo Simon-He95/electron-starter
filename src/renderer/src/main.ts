@@ -33,5 +33,11 @@ const router = createRouter({
     return true
   })
 
+  // Wait for the router to finish the initial navigation so `useRoute()` in
+  // components has the final path on first render. This prevents a brief
+  // mismatch where `route.path` is undefined/empty and UI flashes the wrong
+  // layout (e.g. SidebarProvider appears before Login).
+  await router.isReady()
+
   app.mount('#app')
 })()
