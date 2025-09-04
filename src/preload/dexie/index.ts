@@ -64,3 +64,40 @@ export abstract class CipherDao extends DexieRuntime {
     await this._db.delete(encryptedKey)
   }
 }
+
+// 简单的 TokenDao，用于存取登录 token
+export class TokenDao extends CipherDao {
+  constructor() {
+    // NOTE: AES-128-ECB 需要 16 字节 key；这里做合理的默认（可根据需要改为从安全源注入）
+    // Assumption: using a fixed 16-byte secret for demo purposes
+    super({ dbName: 'cipher-db', secret: '1234567890123456' })
+  }
+
+  async setToken(token: string) {
+    await this.put({ key: 'auth_token', value: token })
+  }
+
+  async getToken(): Promise<string | null> {
+    return (await this.get('auth_token')) as string | null
+  }
+
+  async removeToken() {
+    await this.remove('auth_token')
+  }
+
+  // username helpers
+  async setUsername(name: string) {
+    await this.put({ key: 'username', value: name })
+  }
+
+  async getUsername(): Promise<string | null> {
+    return (await this.get('username')) as string | null
+  }
+
+  async removeUsername() {
+    await this.remove('username')
+  }
+}
+
+// 导出一个单例，preload 可直接使用
+export const tokenDao = new TokenDao()

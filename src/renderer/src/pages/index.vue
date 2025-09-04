@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import useCountStore from '@stores/count'
 import { ref } from 'vue'
+import { useAuthStore } from '@stores/auth'
 
 const countStore = useCountStore()
 const offset = ref({
   x: 0,
   y: 0
 })
+const auth = useAuthStore()
+function logout() {
+  auth.setToken(null)
+  auth.setUsername(null)
+}
 async function newWindow(
   position:
     | 'left-top-in'
@@ -38,6 +44,12 @@ async function newWindow(
 </script>
 
 <template>
+  <div class="flex justify-end p-4">
+    <div v-if="auth.username" class="flex items-center gap-3">
+      <span class="text-sm">{{ auth.username }}</span>
+      <button @click="logout" class="text-sm underline">Logout</button>
+    </div>
+  </div>
   <img alt="logo" class="logo" src="../assets/electron.svg" />
   <div class="creator" @click="countStore.increment">
     Powered by electron-vite {{ countStore.count }}

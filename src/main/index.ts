@@ -24,7 +24,8 @@ app.whenReady().then(() => {
   const mainWindow = createWindow({
     windowConfig: {
       animate: false
-    }
+    },
+    hashRoute: 'login'
   })
   context.mainWindow = mainWindow
 
