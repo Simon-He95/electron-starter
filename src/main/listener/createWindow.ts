@@ -2,7 +2,7 @@ import type { WindowOptions } from '../../shared/types.js'
 import { join } from 'node:path'
 import process from 'node:process'
 import { is } from '@electron-toolkit/utils'
-import { BrowserWindow, shell } from 'electron'
+import { BrowserWindow, screen, shell } from 'electron'
 import { useInterval } from 'lazy-js-utils'
 import icon from '../../../resources/icon.png?asset'
 import { context } from '../index.js'
@@ -345,6 +345,13 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
     })
   })
 
+  mainWindow.on('blur', () => {
+    // 上报给渲染进程
+    BrowserWindow.getAllWindows().forEach((w) =>
+      w.webContents.send('window-blur', { hashRoute: options.hashRoute, id: mainWindow.id })
+    )
+  })
+
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
@@ -416,6 +423,17 @@ export function updateWindowBounds(options: {
     // 右上角外侧， 更新 width 、 height 时，保持右上角位置不变 x 需要减去宽度的变化
     if (options.bounds.width) {
       bounds.width = options.bounds.width
+      // 防止超出屏幕右边界
+      try {
+        const disp = screen.getDisplayMatching(bounds)
+        const maxX = disp.bounds.x + disp.bounds.width
+        const newWidth = options.bounds.width
+        if (bounds.x + newWidth > maxX) {
+          bounds.x = Math.max(maxX - newWidth, 0)
+        }
+      } catch {
+        // ignore
+      }
     }
     if (options.bounds.height) {
       bounds.height = options.bounds.height
@@ -456,6 +474,17 @@ export function updateWindowBounds(options: {
     // 右下角外侧， 更新 width 、 height 时，保持右下角位置不变 x 需要减去宽度的变化，y 需要加上高度的变化
     if (options.bounds.width) {
       bounds.width = options.bounds.width
+      // 防止超出屏幕右边界
+      try {
+        const disp = screen.getDisplayMatching(bounds)
+        const maxX = disp.bounds.x + disp.bounds.width
+        const newWidth = options.bounds.width
+        if (bounds.x + newWidth > maxX) {
+          bounds.x = Math.max(maxX - newWidth, 0)
+        }
+      } catch {
+        // ignore
+      }
     }
     if (options.bounds.height) {
       bounds.y = Math.max(bounds.y - (options.bounds.height - bounds.height), 0)

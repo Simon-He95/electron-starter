@@ -17,5 +17,5 @@
     "esModuleInterop": true,
     "skipLibCheck": true // 添加这个选项跳过库文件检查
   },
-  "include": ["electron.vite.config.*", "src/main/**/*", "src/preload/**/*", "src/shared/**/*"]
+  "include": ["electron.vite.config.*", "src/main/**/*", "src/preload/**/*", "src/shared/**/*", "env.d.ts"]
 }

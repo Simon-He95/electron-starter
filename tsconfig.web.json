@@ -24,7 +24,7 @@
     "skipLibCheck": true // 跳过库文件的类型检查
   },
   "include": [
-    "src/renderer/src/env.d.ts",
+    "env.d.ts",
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.vue"
   ],
