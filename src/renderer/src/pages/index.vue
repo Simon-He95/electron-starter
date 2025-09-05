@@ -61,6 +61,14 @@ async function newWindow(
     }
   })
 }
+// window.http.get('/api/user').then((res) => {
+//   // if (res.success) {
+//   //   console.log('user', res.data)
+//   // }
+//   // else {
+//   //   console.log('error', res.error)
+//   // }
+// })
 </script>
 
 <template>

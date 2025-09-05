@@ -162,6 +162,17 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
     } else if (options.type === 'right-top-out') {
       x = Math.max((parentBounds.x ?? 0) + (parentBounds.width ?? 0) - (options.bound?.x ?? 0), 0)
+      try {
+        const bounds = mainWindow.getBounds()
+        const disp = screen.getDisplayMatching(bounds)
+        const maxX = disp.bounds.x + disp.bounds.width
+        const newWidth = bounds.width
+        if (x + newWidth > maxX) {
+          x = Math.max(maxX - newWidth, 0)
+        }
+      } catch {
+        // ignore
+      }
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
     } else if (options.type === 'right-top-in') {
       x = Math.max(
@@ -195,6 +206,17 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
       )
     } else if (options.type === 'right-bottom-out') {
       x = Math.max((parentBounds.x ?? 0) + (parentBounds.width ?? 0) - (options.bound?.x ?? 0), 0)
+      try {
+        const bounds = mainWindow.getBounds()
+        const disp = screen.getDisplayMatching(bounds)
+        const maxX = disp.bounds.x + disp.bounds.width
+        const newWidth = bounds.width
+        if (x + newWidth > maxX) {
+          x = Math.max(maxX - newWidth, 0)
+        }
+      } catch {
+        // ignore
+      }
       y = Math.max(
         (parentBounds.y ?? 0) +
           (parentBounds.height ?? 0) -
