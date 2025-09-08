@@ -1,23 +1,15 @@
-import type { IPCInvokeMap } from '../shared/types.js'
+import type { ArgsFor, IPCInvokeMap } from '../shared/index.js'
 import process from 'node:process'
 import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge, ipcRenderer } from 'electron'
 import { http } from '../main/http/index.js'
 import { registerDexie } from './dexie/index.js'
 
-// Helper: drop the first element of a tuple if present
-type InvokeArgs<T extends any[]> = T extends [any, ...infer R] ? R : T
-// Resolve args for a channel K
-type ArgsFor<K extends keyof IPCInvokeMap> = InvokeArgs<Parameters<IPCInvokeMap[K]>>
-
 // Custom APIs for renderer
-export const api: {
-  on: (channel: string, listener: (...args: any[]) => void) => Electron.IpcRenderer | void
-  send: <K extends keyof IPCInvokeMap>(
-    channel: K,
-    ...args: ArgsFor<K>
-  ) => Promise<Awaited<ReturnType<IPCInvokeMap[K]>>>
-} = {
+export const api = {
+  getOpenLinksExternal: () => {
+    return ipcRenderer.invoke('getOpenLinksExternal')
+  },
   on: (channel: string, listener: (...args: any[]) => void) => {
     const wrappedListener = (_event: Electron.IpcRendererEvent, ...args: any[]) => listener(...args)
     return ipcRenderer.on(channel, wrappedListener)
@@ -29,6 +21,9 @@ export const api: {
     return ipcRenderer.invoke(channel as string, ...args) as Promise<
       Awaited<ReturnType<IPCInvokeMap[K]>>
     >
+  },
+  updateOpenLinksExternal: (value: boolean) => {
+    return ipcRenderer.invoke('updateOpenLinksExternal', value)
   }
 }
 
@@ -51,10 +46,7 @@ if (process.contextIsolated) {
     console.error(error)
   }
 } else {
-  // @ts-expect-error (define in dts)
   window.electron = electronAPI
-  // @ts-expect-error (define in dts)
   window.api = api
-  // @ts-expect-error (define in dts)
   window.http = http
 }

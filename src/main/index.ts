@@ -4,7 +4,13 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import { createWindow } from './listener/createWindow.js'
 import { ipcListener } from './listener/index.js'
 
-export const context: any = {}
+export const context = {
+  windows: {
+    map: new Map<string, BrowserWindow>(),
+    openLinksExternal: true
+  }
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -27,7 +33,7 @@ app.whenReady().then(() => {
       animate: false
     }
   })
-  context.mainWindow = mainWindow
+  context.windows.map.set('main', mainWindow)
 
   Object.keys(ipcListener).forEach((key) => {
     // 每个 listener 的实现期望的是 (...args) 而不是 (event, ...args)

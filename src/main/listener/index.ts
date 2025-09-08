@@ -1,4 +1,4 @@
-import type { IPCInvokeMap, WindowOptions } from '../../shared/types.js'
+import type { IPCInvokeMap, WindowOptions } from '../../shared/index.js'
 import { context } from '../index.js'
 import { createWindow, updateWindowBounds } from './createWindow.js'
 
@@ -8,16 +8,22 @@ const ipcListener = {
     const win = createWindow(
       Object.assign(
         {
-          parent: context.mainWindow
+          parent: context.windows.map.get('main')
         },
         params
       )
     )
     return win.id
   },
+  getOpenLinksExternal: () => {
+    return context.windows.openLinksExternal
+  },
   ping: () => {
     // eslint-disable-next-line no-console
     console.log('pong')
+  },
+  updateOpenLinksExternal: (_event, value: boolean) => {
+    context.windows.openLinksExternal = value
   },
   updateWindowBounds: (
     _event,
