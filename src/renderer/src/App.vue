@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import AppSidebar from '@renderer/components/AppSidebar.vue'
 import { SidebarProvider, SidebarTrigger } from '@shadcn/sidebar'
+import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const showSiderBarRoutes = ['/']
-window.api.on('window-blur', (...args) => {
-  // eslint-disable-next-line no-console
-  console.log('window-blur', args)
+onMounted(() => {
+  window.api.on('window-blur', (...args) => {
+    // eslint-disable-next-line no-console
+    console.log('window-blur', args)
+  })
 })
 </script>
 

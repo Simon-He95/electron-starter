@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import useCountStore from '@stores/count'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { Button } from '../components/shadcn/ui/button'
 
@@ -14,9 +14,11 @@ async function updateSize(type: 'large' | 'small') {
     bounds: { width: type === 'large' ? 800 : 200, height: type === 'large' ? 600 : 200 }
   })
 }
-window.api.on('window-blur', (...args) => {
-  // eslint-disable-next-line no-console
-  console.log('window-blur in demo.vue', args)
+onMounted(() => {
+  window.api.on('window-blur', (...args) => {
+    // eslint-disable-next-line no-console
+    console.log('window-blur in demo.vue', args)
+  })
 })
 </script>
 
