@@ -15,17 +15,18 @@ const useStore = defineStore('count', {
       this.count++
       // broadcast the new value to other windows
       channel.postMessage({ $$sourceId: instanceId, $$type: 'update', count: this.count })
-    }
+    },
   },
   state: () => ({
-    count: 0
-  })
+    count: 0,
+  }),
 })
 
 channel.onmessage = (event) => {
   const data = event.data
 
-  if (!data) return
+  if (!data)
+    return
 
   // handle update broadcasts from other windows
   if (data.$$type === 'update') {

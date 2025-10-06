@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { MainArg } from '../../../types/ipc-types'
 import useCountStore from '@stores/count'
 import { ref, watch } from 'vue'
 import { Button } from '../components/shadcn/ui/button'
@@ -23,13 +24,13 @@ watch(
   () => offset.value.x,
   (v) => {
     sliderX.value = [v]
-  }
+  },
 )
 watch(
   () => offset.value.y,
   (v) => {
     sliderY.value = [v]
-  }
+  },
 )
 
 async function newWindow(
@@ -42,24 +43,25 @@ async function newWindow(
     | 'left-bottom-out'
     | 'right-bottom-in'
     | 'right-bottom-out'
-    | 'center'
+    | 'center',
 ) {
-  window.api.send('createWindow', {
+  const payload: MainArg<'createWindow'> = {
     hashRoute: '_demo',
     type: position,
     bound: {
       x: +offset.value.x,
-      y: +offset.value.y
+      y: +offset.value.y,
     },
     windowConfig: {
       height: 300,
-      width: 400
+      width: 400,
     },
     isFollowMove: true,
     params: {
-      data: 'hello'
-    }
-  })
+      data: 'hello',
+    },
+  }
+  window.invoke('createWindow', payload)
 }
 // window.http.get('/api/user').then((res) => {
 //   // if (res.success) {
@@ -82,15 +84,33 @@ async function newWindow(
           Powered by electron-vite {{ countStore.count }}
         </div>
         <div class="grid grid-cols-3 gap-3">
-          <Button @click="newWindow('left-top-in')"> left-top-in </Button>
-          <Button @click="newWindow('left-top-out')"> left-top-out </Button>
-          <Button @click="newWindow('right-top-in')"> right-top-in </Button>
-          <Button @click="newWindow('right-top-out')"> right-top-out </Button>
-          <Button @click="newWindow('left-bottom-in')"> left-bottom-in </Button>
-          <Button @click="newWindow('left-bottom-out')"> left-bottom-out </Button>
-          <Button @click="newWindow('right-bottom-in')"> right-bottom-in </Button>
-          <Button @click="newWindow('right-bottom-out')"> right-bottom-out </Button>
-          <Button @click="newWindow('center')"> center </Button>
+          <Button @click="newWindow('left-top-in')">
+            left-top-in
+          </Button>
+          <Button @click="newWindow('left-top-out')">
+            left-top-out
+          </Button>
+          <Button @click="newWindow('right-top-in')">
+            right-top-in
+          </Button>
+          <Button @click="newWindow('right-top-out')">
+            right-top-out
+          </Button>
+          <Button @click="newWindow('left-bottom-in')">
+            left-bottom-in
+          </Button>
+          <Button @click="newWindow('left-bottom-out')">
+            left-bottom-out
+          </Button>
+          <Button @click="newWindow('right-bottom-in')">
+            right-bottom-in
+          </Button>
+          <Button @click="newWindow('right-bottom-out')">
+            right-bottom-out
+          </Button>
+          <Button @click="newWindow('center')">
+            center
+          </Button>
         </div>
         <div class="mt-6 space-y-4">
           <div>
@@ -104,7 +124,9 @@ async function newWindow(
         </div>
       </CardContent>
       <CardFooter>
-        <div class="text-sm text-muted-foreground">Press F12 to open devtools</div>
+        <div class="text-sm text-muted-foreground">
+          Press F12 to open devtools
+        </div>
       </CardFooter>
     </Card>
   </div>

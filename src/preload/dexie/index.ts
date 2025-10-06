@@ -22,14 +22,14 @@ export abstract class CipherDao extends DexieRuntime {
     super(config.dbName)
     this.secret = config.secret
     this.version(1).stores({
-      _db: 'key'
+      _db: 'key',
     })
 
     this._db = this.table('_db')
   }
 
   // 加密put
-  async put(doc: { key: string; value: string }) {
+  async put(doc: { key: string, value: string }) {
     // 对 key 和 value 做 AES-128-ECB 加密（需要 16 字节 key）
     const keyBuf = Buffer.from(this.secret, 'utf8').slice(0, 16)
     const cipherV = crypto.createCipheriv('aes-128-ecb', keyBuf, null)
@@ -40,7 +40,7 @@ export abstract class CipherDao extends DexieRuntime {
     encryptedKey += cipherKey.final('hex')
     const encryptedDoc = {
       key: encryptedKey,
-      value: encryptedValue
+      value: encryptedValue,
     }
     await this._db.put(encryptedDoc)
   }
@@ -51,7 +51,8 @@ export abstract class CipherDao extends DexieRuntime {
     let encryptedKey = cipherKey.update(key, 'utf8', 'hex')
     encryptedKey += cipherKey.final('hex')
     const doc = await this._db.get(encryptedKey)
-    if (!doc) return null
+    if (!doc)
+      return null
     const decipher = crypto.createDecipheriv('aes-128-ecb', keyBuf, null)
     let decrypted = decipher.update(doc.value, 'hex', 'utf8')
     decrypted += decipher.final('utf8')
@@ -104,43 +105,44 @@ export class TokenDao extends CipherDao {
 let tokenDao: TokenDao
 export function registerDexie() {
   // 导出一个单例，preload 可直接使用
-  if (!tokenDao) tokenDao = new TokenDao()
+  if (!tokenDao)
+    tokenDao = new TokenDao()
   else return
 
   // token helper exposed to renderer
-  const token = {
+  const token: import('../../shared/ipc.js').TokenApi = {
     async get() {
       return await tokenDao.getToken()
+    },
+    async getUsername() {
+      return await tokenDao.getUsername()
     },
     async remove() {
       return await tokenDao.removeToken()
     },
-    async set(value: string) {
-      return await tokenDao.setToken(value)
-    }
-  }
-
-  // expose username helpers as well
-  Object.assign(token, {
-    async getUsername() {
-      return await tokenDao.getUsername()
-    },
     async removeUsername() {
       return await tokenDao.removeUsername()
     },
+    async set(value: string) {
+      return await tokenDao.setToken(value)
+    },
     async setUsername(name: string) {
       return await tokenDao.setUsername(name)
-    }
-  })
+    },
+  }
 
   if (process.contextIsolated) {
     try {
       contextBridge.exposeInMainWorld('token', token)
-    } catch (error) {
+    }
+    catch (error) {
       console.error(error)
     }
-  } else {
-    // @ts-expect-error (define in dts)
+  }
+  else {
+    // define on window for non-isolated context
     window.token = token
   }
 }
+
+export type { TokenApi } from '../../shared/ipc.js'

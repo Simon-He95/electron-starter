@@ -1,27 +1,34 @@
-import type { WindowOptions } from '../../shared/index.js'
+import type { BrowserWindow as ElectronBrowserWindow } from 'electron'
+import type { CreateWindowOpts as WindowOptions } from '../../shared/ipc.js'
 import { join } from 'node:path'
 import process from 'node:process'
 import { is } from '@electron-toolkit/utils'
-import { BrowserWindow, screen, shell } from 'electron'
+import electron from 'electron'
 import { useInterval } from 'lazy-js-utils'
 import icon from '../../../resources/icon.png?asset'
 import { context } from '../index.js'
 
+const { BrowserWindow, screen, shell } = electron as any
+
+const DEBUG = process.env.DEBUG === 'true' || process.env.ELECTRON_DEBUG === 'true'
+
 const windowMap = new Map<
   string,
   {
-    newWindow: BrowserWindow
+    newWindow: ElectronBrowserWindow
     type: WindowOptions['type']
   }
 >()
-const relationMap = new Map<string, { id: string; setPosition: (useAnimate?: boolean) => void }[]>()
-const moveThrottleMap = new Map<string, { timeout?: NodeJS.Timeout; last?: number }>()
+const relationMap = new Map<string, { id: string, setPosition: (useAnimate?: boolean) => void }[]>()
+const moveThrottleMap = new Map<string, { timeout?: NodeJS.Timeout, last?: number }>()
 const DEFAULT_THROTTLE_MS = 50
 
-function getKeyForWindow(win?: BrowserWindow): string | undefined {
-  if (!win) return undefined
+function getKeyForWindow(win?: ElectronBrowserWindow): string | undefined {
+  if (!win)
+    return undefined
   for (const [key, w] of windowMap.entries()) {
-    if (w.newWindow === win) return key
+    if (w.newWindow === win)
+      return key
   }
   return undefined
 }
@@ -39,7 +46,8 @@ function scheduleThrottledMove(key: string, invoke: () => void, ms = DEFAULT_THR
   const now = Date.now()
 
   if (entry.last && now - entry.last < ms) {
-    if (entry.timeout) return
+    if (entry.timeout)
+      return
     entry.timeout = setTimeout(
       () => {
         entry.last = Date.now()
@@ -47,7 +55,7 @@ function scheduleThrottledMove(key: string, invoke: () => void, ms = DEFAULT_THR
         moveThrottleMap.set(key, entry)
         invoke()
       },
-      ms - (now - (entry.last || 0))
+      ms - (now - (entry.last || 0)),
     )
     moveThrottleMap.set(key, entry)
     return
@@ -67,7 +75,7 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
       return win.newWindow
     }
   }
-  const mainWindow = context.windows.map.get('main')
+  // don't capture main window here; check current main at close time
 
   const windowConfig = Object.assign(
     {
@@ -75,7 +83,7 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
       animate: {
         duration: 16,
         offsetX: 0,
-        offsetY: -50
+        offsetY: -50,
       },
       autoHideMenuBar: true,
       closable: true,
@@ -85,15 +93,15 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
       ...(process.platform === 'linux' ? { icon } : {}),
       webPreferences: {
         preload: join(__dirname, '../preload/index.mjs'),
-        sandbox: false
-      }
+        sandbox: false,
+      },
     },
     options.windowConfig,
     {
       modal:
         (options.windowConfig?.modal ?? options.bound?.x) ? false : !!options.windowConfig?.parent,
-      parent: options.bound?.x ? undefined : options.windowConfig?.parent
-    }
+      parent: options.bound?.x ? undefined : options.windowConfig?.parent,
+    },
   )
   const newWindow = new BrowserWindow(windowConfig)
   const name = options.exportName
@@ -104,25 +112,25 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
   const idKey = options.id || `$$${newWindow.id}`
   windowMap.set(idKey, {
     newWindow,
-    type: options.type || 'center'
+    type: options.type || 'center',
   })
 
   function getParent() {
     // find the parent key in relationMap whose children list contains this window idKey
     let foundPid: string | undefined
     for (const [pid, children] of relationMap.entries()) {
-      if (children && children.some((item) => item.id === idKey)) {
+      if (children && children.some(item => item.id === idKey)) {
         foundPid = pid
         break
       }
     }
 
-    const parent =
-      foundPid && windowMap.has(String(foundPid))
+    const parent
+      = foundPid && windowMap.has(String(foundPid))
         ? windowMap.get(String(foundPid))?.newWindow
-        : (options.windowConfig?.parent as BrowserWindow) ||
-          BrowserWindow.getFocusedWindow() ||
-          context.windows.map.get('main')
+        : (options.windowConfig?.parent as ElectronBrowserWindow)
+          || BrowserWindow.getFocusedWindow()
+          || context.windows.map.get('main')
 
     return parent
   }
@@ -137,10 +145,10 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
 
       const id = options.id || `$$${newWindow.id}`
       const children = relationMap.has(parentKey) ? relationMap.get(parentKey)! : []
-      if (!children.some((item) => item.id === id)) {
+      if (!children.some(item => item.id === id)) {
         children.push({
           id,
-          setPosition: () => setPosition(false)
+          setPosition: () => setPosition(false),
         })
       }
       relationMap.set(parentKey, children)
@@ -148,25 +156,28 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
     let x, y
     if (!options.type || options.type === 'center') {
       x = Math.max(
-        (parentBounds.x ?? 0) +
-          ((parentBounds.width ?? 0) - (newWindow.getBounds().width ?? 0)) / 2,
-        0
+        (parentBounds.x ?? 0)
+        + ((parentBounds.width ?? 0) - (newWindow.getBounds().width ?? 0)) / 2,
+        0,
       )
       y = Math.max(
-        (parentBounds.y ?? 0) +
-          ((parentBounds.height ?? 0) - (newWindow.getBounds().height ?? 0)) / 2,
-        0
+        (parentBounds.y ?? 0)
+        + ((parentBounds.height ?? 0) - (newWindow.getBounds().height ?? 0)) / 2,
+        0,
       )
-    } else if (options.type === 'left-top-in') {
+    }
+    else if (options.type === 'left-top-in') {
       x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0)
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
-    } else if (options.type === 'left-top-out') {
+    }
+    else if (options.type === 'left-top-out') {
       x = Math.max(
         (parentBounds.x ?? 0) + (options.bound?.x ?? 0) - (newWindow.getBounds().width ?? 0),
-        0
+        0,
       )
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
-    } else if (options.type === 'right-top-out') {
+    }
+    else if (options.type === 'right-top-out') {
       x = Math.max((parentBounds.x ?? 0) + (parentBounds.width ?? 0) - (options.bound?.x ?? 0), 0)
       try {
         const bounds = newWindow.getBounds()
@@ -176,41 +187,46 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
         if (x + newWidth > maxX) {
           x = Math.max(maxX - newWidth, 0)
         }
-      } catch {
+      }
+      catch {
         // ignore
       }
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
-    } else if (options.type === 'right-top-in') {
+    }
+    else if (options.type === 'right-top-in') {
       x = Math.max(
-        (parentBounds.x ?? 0) +
-          (parentBounds.width ?? 0) -
-          (options.bound?.x ?? 0) -
-          (newWindow.getBounds().width ?? 0),
-        0
+        (parentBounds.x ?? 0)
+        + (parentBounds.width ?? 0)
+        - (options.bound?.x ?? 0)
+        - (newWindow.getBounds().width ?? 0),
+        0,
       )
       y = (parentBounds.y ?? 0) + (options.bound?.y ?? 0)
-    } else if (options.type === 'left-bottom-in') {
+    }
+    else if (options.type === 'left-bottom-in') {
       x = (parentBounds.x ?? 0) + (options.bound?.x ?? 0)
       y = Math.max(
-        (parentBounds.y ?? 0) +
-          (parentBounds.height ?? 0) -
-          (options.bound?.y ?? 0) -
-          (newWindow.getBounds().height ?? 0),
-        0
+        (parentBounds.y ?? 0)
+        + (parentBounds.height ?? 0)
+        - (options.bound?.y ?? 0)
+        - (newWindow.getBounds().height ?? 0),
+        0,
       )
-    } else if (options.type === 'left-bottom-out') {
+    }
+    else if (options.type === 'left-bottom-out') {
       x = Math.max(
         (parentBounds.x ?? 0) + (options.bound?.x ?? 0) - (newWindow.getBounds().width ?? 0),
-        0
+        0,
       )
       y = Math.max(
-        (parentBounds.y ?? 0) +
-          (parentBounds.height ?? 0) -
-          (options.bound?.y ?? 0) -
-          (newWindow.getBounds().height ?? 0),
-        0
+        (parentBounds.y ?? 0)
+        + (parentBounds.height ?? 0)
+        - (options.bound?.y ?? 0)
+        - (newWindow.getBounds().height ?? 0),
+        0,
       )
-    } else if (options.type === 'right-bottom-out') {
+    }
+    else if (options.type === 'right-bottom-out') {
       x = Math.max((parentBounds.x ?? 0) + (parentBounds.width ?? 0) - (options.bound?.x ?? 0), 0)
       try {
         const bounds = newWindow.getBounds()
@@ -220,30 +236,33 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
         if (x + newWidth > maxX) {
           x = Math.max(maxX - newWidth, 0)
         }
-      } catch {
+      }
+      catch {
         // ignore
       }
       y = Math.max(
-        (parentBounds.y ?? 0) +
-          (parentBounds.height ?? 0) -
-          (options.bound?.y ?? 0) -
-          (newWindow.getBounds().height ?? 0),
-        0
+        (parentBounds.y ?? 0)
+        + (parentBounds.height ?? 0)
+        - (options.bound?.y ?? 0)
+        - (newWindow.getBounds().height ?? 0),
+        0,
       )
-    } else if (options.type === 'right-bottom-in') {
-      x =
-        (parentBounds.x ?? 0) +
-        (parentBounds.width ?? 0) -
-        (options.bound?.x ?? 0) -
-        (newWindow.getBounds().width ?? 0)
+    }
+    else if (options.type === 'right-bottom-in') {
+      x
+        = (parentBounds.x ?? 0)
+          + (parentBounds.width ?? 0)
+          - (options.bound?.x ?? 0)
+          - (newWindow.getBounds().width ?? 0)
       y = Math.max(
-        (parentBounds.y ?? 0) +
-          (parentBounds.height ?? 0) -
-          (options.bound?.y ?? 0) -
-          (newWindow.getBounds().height ?? 0),
-        0
+        (parentBounds.y ?? 0)
+        + (parentBounds.height ?? 0)
+        - (options.bound?.y ?? 0)
+        - (newWindow.getBounds().height ?? 0),
+        0,
       )
-    } else {
+    }
+    else {
       throw new Error(`type: [${options.type}] is not supported`)
     }
 
@@ -258,9 +277,9 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
             height: options.bound?.height,
             width: options.bound?.width,
             x: Math.floor(x - offsetX),
-            y: Math.floor(y - offsetY)
+            y: Math.floor(y - offsetY),
           },
-          true
+          true,
         )
         setTimeout(() => {
           const { pause } = useInterval(() => {
@@ -274,26 +293,28 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
                   height: options.bound?.height,
                   width: options.bound?.width,
                   x,
-                  y
+                  y,
                 },
-                true
+                true,
               )
               pause()
-            } else {
+            }
+            else {
               newWindow.setOpacity(opacity)
               newWindow.setBounds(
                 {
                   height: options.bound?.height,
                   width: options.bound?.width,
                   x: Math.floor(x - offsetX),
-                  y: Math.floor(y - offsetY)
+                  y: Math.floor(y - offsetY),
                 },
-                true
+                true,
               )
             }
           }, windowConfig.animate?.duration ?? 16)
         })
-      } else {
+      }
+      else {
         newWindow.setPosition(Math.floor(x - offsetX), Math.floor(y - offsetY), true)
         setTimeout(() => {
           const { pause } = useInterval(() => {
@@ -304,22 +325,25 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
               newWindow.setOpacity(1)
               newWindow.setPosition(x, y, true)
               pause()
-            } else {
+            }
+            else {
               newWindow.setOpacity(opacity)
               newWindow.setPosition(Math.floor(x - offsetX), Math.floor(y - offsetY), true)
             }
           }, windowConfig.animate?.duration ?? 16)
         })
       }
-    } else {
+    }
+    else {
       if (options.bound?.width || options.bound?.height) {
         newWindow.setBounds({
           height: options.bound?.height,
           width: options.bound?.width,
           x,
-          y
+          y,
         })
-      } else {
+      }
+      else {
         newWindow.setPosition(x, y)
       }
     }
@@ -335,7 +359,8 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
   newWindow.on('closed', () => {
     // 如果你在 context 或其它地方保存了引用，清理它
     // use the same idKey we used when registering the window
-    if (name) context.windows.map.delete(name)
+    if (name)
+      context.windows.map.delete(name)
 
     // 删除该 id 下的子 id
     if (relationMap.has(idKey)) {
@@ -343,7 +368,7 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
     }
     // 删除该窗口在父 id 下的引用
     relationMap.forEach((children, pid) => {
-      const index = children.findIndex((item) => item.id === idKey)
+      const index = children.findIndex(item => item.id === idKey)
       if (index > -1) {
         children.splice(index, 1)
         relationMap.set(pid, children)
@@ -352,33 +377,62 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
     // 清理该父窗口的节流定时器（如果存在）
     clearThrottle(idKey)
     windowMap.delete(idKey)
-    if (mainWindow === newWindow) {
-      context.windows.map.delete('main')
+    // check the current main window at close time (not the one captured earlier)
+    const currentMain = context.windows.map.get('main')
+    if (currentMain === newWindow) {
       // mainWindow 被销毁了，所有的 windowMap 里的引用都应该被清理掉
-      windowMap.forEach((win, id) => {
-        windowMap.delete(id)
-        win.newWindow.removeAllListeners()
-        win.newWindow.destroy()
-      })
-    } else {
-      newWindow.removeAllListeners()
-      newWindow.destroy()
+      // remove the main mapping first
+      context.windows.map.delete('main')
+
+      // Destroy all other BrowserWindows in the app (skip the one that's closing)
+      const all = BrowserWindow.getAllWindows()
+      for (const w of all) {
+        if (w === newWindow)
+          continue
+        try {
+          w.removeAllListeners()
+          if (!w.isDestroyed())
+            w.destroy()
+        }
+        catch (err) {
+          console.error('error destroying child window', err)
+        }
+      }
+
+      // clear our tracking maps and throttles
+      for (const key of Array.from(windowMap.keys())) {
+        clearThrottle(key)
+      }
+      windowMap.clear()
+      relationMap.clear()
+      moveThrottleMap.clear()
+    }
+    else {
+      try {
+        newWindow.removeAllListeners()
+        if (!newWindow.isDestroyed())
+          newWindow.destroy()
+      }
+      catch (err) {
+        console.error('error destroying window', idKey, err)
+      }
     }
   })
 
   newWindow.on('move', () => {
     const pid = idKey
-    if (!relationMap.has(pid)) return
+    if (!relationMap.has(pid))
+      return
     scheduleThrottledMove(pid, () => {
       const children = relationMap.get(pid)!
-      children.forEach((child) => child.setPosition(false))
+      children.forEach(child => child.setPosition(false))
     })
   })
 
   newWindow.on('blur', () => {
     // 上报给渲染进程
-    BrowserWindow.getAllWindows().forEach((w) =>
-      w.webContents.send('window-blur', { hashRoute: options.hashRoute, id: newWindow.id })
+    BrowserWindow.getAllWindows().forEach(w =>
+      w.webContents.send('window-blur', { hashRoute: options.hashRoute, id: newWindow.id }),
     )
   })
 
@@ -396,8 +450,8 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
     }
 
     const { mode, url } = parseLinkBehavior(details.url)
-    const openExternal =
-      typeof options.openLinksExternal !== 'undefined'
+    const openExternal
+      = typeof options.openLinksExternal !== 'undefined'
         ? options.openLinksExternal
         : (context.windows.openLinksExternal ?? true)
 
@@ -410,7 +464,8 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
     // Open inside the app: try to load in current window. If that fails, fall back to external.
     try {
       newWindow.webContents.loadURL(url)
-    } catch {
+    }
+    catch {
       shell.openExternal(url)
     }
     return { action: 'deny' }
@@ -431,8 +486,8 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
     }
 
     const { mode, url: parsedUrl } = parseLinkBehavior(url)
-    const openExternal =
-      typeof options.openLinksExternal !== 'undefined'
+    const openExternal
+      = typeof options.openLinksExternal !== 'undefined'
         ? options.openLinksExternal
         : (context.windows.openLinksExternal ?? true)
 
@@ -447,7 +502,8 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
       event.preventDefault()
       try {
         newWindow.webContents.loadURL(parsedUrl)
-      } catch {
+      }
+      catch {
         shell.openExternal(parsedUrl)
       }
     }
@@ -461,10 +517,11 @@ export function createWindow(options: WindowOptions = { windowConfig: {} }) {
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
     const filePath = join(
       process.env.ELECTRON_RENDERER_URL,
-      `${options.hashRoute ? `#${options.hashRoute}` : ''}?${new URLSearchParams(params).toString()}`
+      `${options.hashRoute ? `#${options.hashRoute}` : ''}?${new URLSearchParams(params).toString()}`,
     )
     newWindow.loadURL(filePath)
-  } else {
+  }
+  else {
     const filePath = options.params
       ? `renderer/index.html${options.hashRoute ? `#${options.hashRoute}` : ''}?${new URLSearchParams(params).toString()}`
       : `renderer/index.html${options.hashRoute ? `#${options.hashRoute}` : ''}`
@@ -483,7 +540,8 @@ export function updateWindowBounds(options: {
 }) {
   const idKey = windowMap.has(options.id) ? options.id : `$$${options.id}`
   const win = windowMap.get(idKey)
-  if (!win?.newWindow || win.newWindow.isDestroyed()) return false
+  if (!win?.newWindow || win.newWindow.isDestroyed())
+    return false
   const type = win.type
   const bounds = win.newWindow.getBounds()
   if (type === 'center') {
@@ -498,7 +556,8 @@ export function updateWindowBounds(options: {
       bounds.height = options.bounds.height
     }
     win.newWindow.setBounds(bounds)
-  } else if (type === 'left-top-in') {
+  }
+  else if (type === 'left-top-in') {
     // 左上角内侧， 更新 width 、 height 时，保持左上角位置不变 直接更新宽高
     if (options.bounds.width) {
       bounds.width = options.bounds.width
@@ -507,7 +566,8 @@ export function updateWindowBounds(options: {
       bounds.height = options.bounds.height
     }
     win.newWindow.setBounds(bounds)
-  } else if (type === 'left-top-out') {
+  }
+  else if (type === 'left-top-out') {
     // 左上角外侧， 更新 width 、 height 时，保持左上角位置不变 x 需要加上宽度的变化
     if (options.bounds.width) {
       bounds.x = Math.max(bounds.x - (options.bounds.width - bounds.width), 0)
@@ -517,7 +577,8 @@ export function updateWindowBounds(options: {
       bounds.height = options.bounds.height
     }
     win.newWindow.setBounds(bounds)
-  } else if (type === 'right-top-out') {
+  }
+  else if (type === 'right-top-out') {
     // 右上角外侧， 更新 width 、 height 时，保持右上角位置不变 x 需要减去宽度的变化
     if (options.bounds.width) {
       bounds.width = options.bounds.width
@@ -529,7 +590,8 @@ export function updateWindowBounds(options: {
         if (bounds.x + newWidth > maxX) {
           bounds.x = Math.max(maxX - newWidth, 0)
         }
-      } catch {
+      }
+      catch {
         // ignore
       }
     }
@@ -537,7 +599,8 @@ export function updateWindowBounds(options: {
       bounds.height = options.bounds.height
     }
     win.newWindow.setBounds(bounds)
-  } else if (type === 'right-top-in') {
+  }
+  else if (type === 'right-top-in') {
     // 右上角内侧， 更新 width 、 height 时，保持右上角位置不变 x 需要加上宽度的变化
     if (options.bounds.width) {
       bounds.x = Math.max(bounds.x - (options.bounds.width - bounds.width), 0)
@@ -547,7 +610,8 @@ export function updateWindowBounds(options: {
       bounds.height = options.bounds.height
     }
     win.newWindow.setBounds(bounds)
-  } else if (type === 'left-bottom-in') {
+  }
+  else if (type === 'left-bottom-in') {
     // 左下角内侧， 更新 width 、 height 时，保持左下角位置不变 y 需要加上高度的变化
     if (options.bounds.width) {
       bounds.width = options.bounds.width
@@ -557,7 +621,8 @@ export function updateWindowBounds(options: {
       bounds.height = options.bounds.height
     }
     win.newWindow.setBounds(bounds)
-  } else if (type === 'left-bottom-out') {
+  }
+  else if (type === 'left-bottom-out') {
     // 左下角外侧， 更新 width 、 height 时，保持左下角位置不变 x 需要加上宽度的变化，y 需要加上高度的变化
     if (options.bounds.width) {
       bounds.x = Math.max(bounds.x - (options.bounds.width - bounds.width), 0)
@@ -568,7 +633,8 @@ export function updateWindowBounds(options: {
       bounds.height = options.bounds.height
     }
     win.newWindow.setBounds(bounds)
-  } else if (type === 'right-bottom-out') {
+  }
+  else if (type === 'right-bottom-out') {
     // 右下角外侧， 更新 width 、 height 时，保持右下角位置不变 x 需要减去宽度的变化，y 需要加上高度的变化
     if (options.bounds.width) {
       bounds.width = options.bounds.width
@@ -580,7 +646,8 @@ export function updateWindowBounds(options: {
         if (bounds.x + newWidth > maxX) {
           bounds.x = Math.max(maxX - newWidth, 0)
         }
-      } catch {
+      }
+      catch {
         // ignore
       }
     }
@@ -589,7 +656,8 @@ export function updateWindowBounds(options: {
       bounds.height = options.bounds.height
     }
     win.newWindow.setBounds(bounds)
-  } else if (type === 'right-bottom-in') {
+  }
+  else if (type === 'right-bottom-in') {
     // 右下角内侧， 更新 width 、 height 时，保持右下角位置不变 x 需要减去宽度的变化，y 需要加上高度的变化
     if (options.bounds.width) {
       bounds.x = Math.max(bounds.x - (options.bounds.width - bounds.width), 0)
@@ -602,4 +670,76 @@ export function updateWindowBounds(options: {
     win.newWindow.setBounds(bounds)
   }
   return true
+}
+
+/**
+ * Destroy all tracked windows and clear internal tracking maps.
+ * This is safe to call multiple times.
+ */
+export function destroyAllTrackedWindows() {
+  try {
+    const all = BrowserWindow.getAllWindows()
+    if (DEBUG) {
+      // eslint-disable-next-line no-console
+      console.log('[main] destroyAllTrackedWindows: found', all.length, 'windows')
+    }
+    for (const w of all) {
+      try {
+        const id = w?.id
+        if (DEBUG) {
+          // eslint-disable-next-line no-console
+          console.log('[main] destroying window id=', id)
+        }
+        w.removeAllListeners()
+        if (!w.isDestroyed())
+          w.destroy()
+      }
+      catch (err) {
+        console.error('error destroying window during global cleanup', err)
+      }
+    }
+  }
+  catch (err) {
+    console.error('error enumerating windows during cleanup', err)
+  }
+
+  try {
+    // clear internal maps and throttles
+    for (const key of Array.from(windowMap.keys())) {
+      clearThrottle(key)
+    }
+    windowMap.clear()
+    relationMap.clear()
+    moveThrottleMap.clear()
+  }
+  catch (err) {
+    console.error('error clearing internal window maps', err)
+  }
+}
+
+// Test helper: return sizes of internal tracking maps. Useful for unit tests.
+export function getWindowTrackingInfo() {
+  return {
+    moveThrottleSize: moveThrottleMap.size,
+    relationMapSize: relationMap.size,
+    windowMapSize: windowMap.size,
+  }
+}
+
+/**
+ * Test helper: reset internal tracking maps and throttles without touching BrowserWindow instances.
+ * Useful for unit tests that want a clean internal state between cases.
+ */
+export function resetWindowTracking() {
+  try {
+    for (const key of Array.from(windowMap.keys())) {
+      clearThrottle(key)
+    }
+    windowMap.clear()
+    relationMap.clear()
+    moveThrottleMap.clear()
+  }
+  catch (err) {
+    console.error('error resetting internal window maps', err)
+  }
 }

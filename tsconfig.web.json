@@ -23,10 +23,13 @@
     },
     "skipLibCheck": true // 跳过库文件的类型检查
   },
+  "files": ["src/shared/index.d.ts"],
   "include": [
     "env.d.ts",
     "src/renderer/src/**/*",
-    "src/renderer/src/**/*.vue"
+    "src/renderer/src/**/*.vue",
+    "src/types/**/*",
+    "src/shared/**/*"
   ],
   "exclude": [
     "src/main",

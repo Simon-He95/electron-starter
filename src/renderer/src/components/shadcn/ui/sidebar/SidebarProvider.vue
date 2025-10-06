@@ -10,7 +10,7 @@ import {
   SIDEBAR_COOKIE_NAME,
   SIDEBAR_KEYBOARD_SHORTCUT,
   SIDEBAR_WIDTH,
-  SIDEBAR_WIDTH_ICON
+  SIDEBAR_WIDTH_ICON,
 } from './utils'
 
 const props = withDefaults(
@@ -21,8 +21,8 @@ const props = withDefaults(
   }>(),
   {
     defaultOpen: !defaultDocument?.cookie.includes(`${SIDEBAR_COOKIE_NAME}=false`),
-    open: undefined
-  }
+    open: undefined,
+  },
 )
 
 const emits = defineEmits<{
@@ -34,7 +34,7 @@ const openMobile = ref(false)
 
 const open = useVModel(props, 'open', emits, {
   defaultValue: props.defaultOpen ?? false,
-  passive: (props.open === undefined) as false
+  passive: (props.open === undefined) as false,
 }) as Ref<boolean>
 
 function setOpen(value: boolean) {
@@ -71,7 +71,7 @@ provideSidebarContext({
   isMobile,
   openMobile,
   setOpenMobile,
-  toggleSidebar
+  toggleSidebar,
 })
 </script>
 
@@ -80,12 +80,12 @@ provideSidebarContext({
     <div
       :style="{
         '--sidebar-width': SIDEBAR_WIDTH,
-        '--sidebar-width-icon': SIDEBAR_WIDTH_ICON
+        '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
       }"
       :class="
         cn(
           'group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar',
-          props.class
+          props.class,
         )
       "
       v-bind="$attrs"

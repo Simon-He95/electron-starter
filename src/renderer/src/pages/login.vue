@@ -14,27 +14,29 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle
+  CardTitle,
 } from '../components/shadcn/ui/card'
 
 const router = useRouter()
 const auth = useAuthStore()
-const usernameRef = ref<{ focus?: () => void; el?: HTMLInputElement | null } | null>(null)
+const usernameRef = ref<{ focus?: () => void, el?: HTMLInputElement | null } | null>(null)
 const loading = ref(false)
 
 onMounted(() => {
   // if token already present after auth.init(), redirect away from login
   if (auth.token) {
     router.replace({ path: '/' })
-  } else {
+  }
+  else {
     usernameRef.value?.focus?.()
   }
 })
 
 // fake login function that returns a token after a small delay; only username required
 async function fakeLogin(user: string) {
-  await new Promise((r) => setTimeout(r, 300))
-  if (user) return `token-${btoa(user)}`
+  await new Promise(r => setTimeout(r, 300))
+  if (user)
+    return `token-${btoa(user)}`
   throw new Error('Invalid username')
 }
 // Vee-validate + zod schema
@@ -43,8 +45,8 @@ const formSchema = toTypedSchema(
     username: z
       .string()
       .min(1, 'Please enter a username')
-      .regex(/^\S+$/, 'Username cannot contain spaces')
-  })
+      .regex(/^\S+$/, 'Username cannot contain spaces'),
+  }),
 )
 
 const { handleSubmit, values, resetForm, meta } = useForm({ validationSchema: formSchema })
@@ -56,10 +58,12 @@ const onSubmit = handleSubmit(async (vals) => {
     await auth.setToken(t)
     await auth.setUsername(vals.username)
     await router.replace({ path: '/' })
-  } catch (e) {
+  }
+  catch (e) {
     // eslint-disable-next-line no-console
     console.log(e)
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 })
@@ -101,7 +105,9 @@ function reset() {
         </form>
       </CardContent>
       <CardFooter class="flex items-center justify-between px-6 pb-6">
-        <Button variant="outline" @click="reset"> Cancel </Button>
+        <Button variant="outline" @click="reset">
+          Cancel
+        </Button>
         <Button
           :disabled="loading || !values.username || !meta.valid"
           class="ml-2"

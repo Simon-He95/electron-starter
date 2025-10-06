@@ -9,7 +9,7 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
-  SidebarMenuSubItem
+  SidebarMenuSubItem,
 } from '@shadcn/sidebar'
 import { ChevronRight } from 'lucide-vue-next'
 

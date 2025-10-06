@@ -14,9 +14,9 @@ const instance = vAxios({
   // cast env to any to avoid missing declaration errors in some TS setups
   baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000',
   headers: {
-    'Content-Type': 'application/json;charset=UTF-8'
+    'Content-Type': 'application/json;charset=UTF-8',
   },
-  timeout: 10000
+  timeout: 10000,
 })
 
 const http: HttpClient = {
@@ -35,7 +35,7 @@ const http: HttpClient = {
   async put<T = any>(url: string, data?: any, config?: RequestConfig) {
     const res = await instance.put(url, data, config)
     return (res as any).data as T
-  }
+  },
 }
 
 export { http }

@@ -52,15 +52,15 @@ pnpm run build:mac # macOS 打包（更多 target 可见 package.json scripts）
 
 ## IPC（通信）说明
 
-预加载脚本 `src/preload/index.ts` 暴露了一个轻量的 `api.send` 方法用于调用主进程的 `ipcMain.handle` 注册的 handler：
+预加载脚本 `src/preload/index.ts` 暴露了一个类型安全的 `invoke` helper（也保留了 `api.send` 兼容层），用于调用主进程的 `ipcMain.handle` 注册的 handler：
 
 - 调用方式（渲染进程）：
 
 ```ts
-// renderer 里直接使用全局 window.api（或在类型已声明时使用 window.api.send）
-await window.api.send('ping')
+// renderer 里直接使用全局 window.invoke（参数/返回会从主进程实现推断）
+await window.invoke('ping')
 // 或创建窗口
-await window.api.send('createWindow', {
+await window.invoke('createWindow', {
   windowConfig: {
     title: '新窗口',
     width: 500,
@@ -71,6 +71,9 @@ await window.api.send('createWindow', {
   params: { foo: 'bar' },
   hashRoute: 'demo'
 })
+
+// 监听事件可以使用 window.onIpc
+window.onIpc('window-blur', (payload) => { /* ... */ })
 ```
 
 实现细节：
@@ -97,7 +100,7 @@ await window.api.send('createWindow', {
 示例：从渲染进程请求在父窗口右上角打开一个 300x200 的窗口
 
 ```ts
-await window.api.send('createWindow', {
+await window.invoke('createWindow', {
   windowConfig: { title: '右上角窗口', parent: window },
   type: 'right-top',
   bound: { x: 10, y: 10, width: 300, height: 200 }
@@ -121,6 +124,22 @@ declare global {
 }
 ```
 
+额外示例 — 在 renderer 中使用 schema 类型和 `MainArg`：
+
+```ts
+import type { MainArg } from 'src/types/ipc-types'
+// 直接从 shared schemas 导入 zod 推断的类型
+import type { CreateWindowInput } from '../shared/schemas'
+
+const payload: MainArg<'createWindow'> = {
+  windowConfig: { width: 400, height: 300, title: 'Demo' },
+  hashRoute: '_demo'
+}
+
+// 调用时参数与返回值类型由主进程实现推断并在预加载层做运行时验证
+await window.invoke('createWindow', payload)
+```
+
 ## 常见问题与排查
 
 - 如果窗口没有正确定位：请确认父窗口存在且 `parent.getBounds()` 返回正确值；可在主进程里打印 bounds 做调试。
@@ -131,6 +150,70 @@ declare global {
 - 在 `src/shared/ipc.ts` 中集中管理频道常量与类型，以避免字符串硬编码。
 - 可在 `listener` 里扩展更多便捷的窗口模板（如托盘窗口、工具窗口等）。
 - 添加示例页面（renderer/pages）展示如何通过 `params` / `hashRoute` 共享数据。
+
+### 编译时类型检查（声明文件）
+
+本仓库使用声明文件（`.d.ts`）作为仅编译时的类型检查，放在 `src/types/_type-tests` 下，例如 `ipc-types.test.d.ts`。这些文件会被 renderer 与 node 的 tsconfig 同时包含，用于对跨进程的类型契约（例如主进程实现推断出的 `MainArg`）进行编译期验证，但不会产生运行时代码或导致 ESM 导入/扩展名问题。
+
+优点：
+
+- 在 PR/CI 中能自动发现类型回归。
+- 不会引入运行时依赖或路径扩展问题（避免从测试文件直接导入实现文件）。
+- 通过把这些声明放在 `src/types`，你可以在 renderer 的 tsconfig 中安全地引用这些类型。
+
+## IPC typing & runtime validation
+
+This project uses zod schemas as a single source of truth for IPC contracts. The schemas live in `src/shared/schemas.ts` and are used for:
+
+- Runtime validation in the main process (safe for zod codegen).
+- Type derivation for TypeScript so renderer/preload types stay in sync with runtime schemas.
+
+How it works
+- Define zod schemas in `src/shared/schemas.ts` (e.g. `CreateWindowSchema`).
+- `src/shared/schemas.ts` exports inferred TypeScript types (e.g. `CreateWindowInput`) and a `schemaMap` used at runtime.
+- `src/shared/ipc.ts` imports the schema types (type-only) and maps IPC handler parameter types to the corresponding schema types. This keeps compile-time and runtime contracts aligned.
+
+Usage examples
+- In the main process handlers, validation is performed before invoking handlers using `schemaMap`.
+- In the renderer or preload, you can use the typed global helpers exposed by the preload script:
+
+  - `window.invoke(channel, payload)` — typed to the schema-derived input/return types.
+  - `window.api` — convenience methods like `getOpenLinksExternal()` and `updateOpenLinksExternal(value)`.
+
+Type imports (compile-time only)
+- If you need the shape of a payload in renderer code, import the types from `src/shared/ipc-types.ts` or directly from `src/shared/schemas.ts` using a type-only import:
+
+```ts
+import type { CreateWindowInput } from 'src/shared/schemas'
+```
+
+Notes
+- Validation is performed in the main process because zod's fast-path code-gen may be disabled in preload contexts. Preload defers validation to main to avoid EvalError in restricted contexts.
+- There are unit tests under `test/` that assert the cleanup and IPC wiring; CI is configured to run them on push/PR.
+
+## Debugging
+
+To start the app with debug logs enabled (useful to see window cleanup logs and other main-process diagnostics):
+
+```
+pnpm dev:debug
+```
+
+This sets `DEBUG=true` and `ELECTRON_DEBUG=true` for the dev server. In that mode you'll see messages like:
+
+- [main] destroyAllTrackedWindows: found N windows
+- [main] destroying window id= X
+
+Running tests locally:
+
+```
+pnpm install
+pnpm test
+```
+
+CI notes: the repository includes a GitHub Actions workflow (`.github/workflows/ci.yml`) which runs `tsc --noEmit` and the Vitest tests on each push/PR across Linux/macOS/Windows.
+
+若需要新增检查，请创建一个新的 `.d.ts` 文件并放入 `src/types/_type-tests`，TypeScript 将在类型检查时验证它们。
 
 ---
 

@@ -5,7 +5,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '@shadcn/dropdown-menu'
 
 import {
@@ -15,7 +15,7 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar
+  useSidebar,
 } from '@shadcn/sidebar'
 import { Folder, Forward, MoreHorizontal, Trash2 } from 'lucide-vue-next'
 

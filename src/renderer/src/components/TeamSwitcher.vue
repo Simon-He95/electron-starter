@@ -8,7 +8,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '@shadcn/dropdown-menu'
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@shadcn/sidebar'
 import { ChevronsUpDown, Plus } from 'lucide-vue-next'
@@ -56,7 +56,9 @@ const activeTeam = ref(props.teams[0])
           :side="isMobile ? 'bottom' : 'right'"
           :side-offset="4"
         >
-          <DropdownMenuLabel class="text-xs text-muted-foreground"> Teams </DropdownMenuLabel>
+          <DropdownMenuLabel class="text-xs text-muted-foreground">
+            Teams
+          </DropdownMenuLabel>
           <DropdownMenuItem
             v-for="(team, index) in teams"
             :key="team.name"
@@ -74,7 +76,9 @@ const activeTeam = ref(props.teams[0])
             <div class="flex size-6 items-center justify-center rounded-md border bg-background">
               <Plus class="size-4" />
             </div>
-            <div class="font-medium text-muted-foreground">Add team</div>
+            <div class="font-medium text-muted-foreground">
+              Add team
+            </div>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -6,7 +6,7 @@ import { reactiveOmit } from '@vueuse/core'
 import { ContextMenuLabel } from 'reka-ui'
 
 const props = defineProps<
-  ContextMenuLabelProps & { class?: HTMLAttributes['class']; inset?: boolean }
+  ContextMenuLabelProps & { class?: HTMLAttributes['class'], inset?: boolean }
 >()
 
 const delegatedProps = reactiveOmit(props, 'class')

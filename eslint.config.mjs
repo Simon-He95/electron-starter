@@ -10,13 +10,15 @@ export default simon(
       'dist',
       'node_modules',
       './tailwind.config.ts',
-      './src/renderer/src/env.d.ts'
-    ]
+      './src/renderer/src/env.d.ts',
+      'test',
+      'scripts',
+    ],
   },
   {
     files: ['src/**/*.ts'],
     rules: {
-      'perfectionist/sort-objects': 'error'
-    }
-  }
+      'perfectionist/sort-objects': 'error',
+    },
+  },
 )

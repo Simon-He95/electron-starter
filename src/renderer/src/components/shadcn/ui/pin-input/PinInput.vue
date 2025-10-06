@@ -8,8 +8,8 @@ import { PinInputRoot, useForwardPropsEmits } from 'reka-ui'
 const props = withDefaults(
   defineProps<PinInputRootProps<Type> & { class?: HTMLAttributes['class'] }>(),
   {
-    modelValue: () => []
-  }
+    modelValue: () => [],
+  },
 )
 const emits = defineEmits<PinInputRootEmits<Type>>()
 

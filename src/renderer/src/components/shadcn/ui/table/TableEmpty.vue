@@ -11,8 +11,8 @@ const props = withDefaults(
     colspan?: number
   }>(),
   {
-    colspan: 1
-  }
+    colspan: 1,
+  },
 )
 
 const delegatedProps = reactiveOmit(props, 'class')

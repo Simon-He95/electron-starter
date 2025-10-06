@@ -7,7 +7,7 @@ import { Separator } from 'reka-ui'
 
 const props = withDefaults(defineProps<SeparatorProps & { class?: HTMLAttributes['class'] }>(), {
   orientation: 'horizontal',
-  decorative: true
+  decorative: true,
 })
 
 const delegatedProps = reactiveOmit(props, 'class')
@@ -20,7 +20,7 @@ const delegatedProps = reactiveOmit(props, 'class')
       cn(
         'shrink-0 bg-border',
         props.orientation === 'horizontal' ? 'h-px w-full' : 'w-px h-full',
-        props.class
+        props.class,
       )
     "
   />

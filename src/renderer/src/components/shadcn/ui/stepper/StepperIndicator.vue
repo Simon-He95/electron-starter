@@ -26,7 +26,7 @@ const forwarded = useForwardProps(delegatedProps)
         'group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground',
         // Completed
         'group-data-[state=completed]:bg-accent group-data-[state=completed]:text-accent-foreground',
-        props.class
+        props.class,
       )
     "
   >

@@ -7,7 +7,7 @@ import SidebarMenuButtonChild from './SidebarMenuButtonChild.vue'
 import { useSidebar } from './utils'
 
 defineOptions({
-  inheritAttrs: false
+  inheritAttrs: false,
 })
 
 const props = withDefaults(
@@ -19,8 +19,8 @@ const props = withDefaults(
   {
     as: 'button',
     variant: 'default',
-    size: 'default'
-  }
+    size: 'default',
+  },
 )
 
 const { isMobile, state } = useSidebar()

@@ -6,7 +6,7 @@ import { reactiveOmit } from '@vueuse/core'
 import { ProgressIndicator, ProgressRoot } from 'reka-ui'
 
 const props = withDefaults(defineProps<ProgressRootProps & { class?: HTMLAttributes['class'] }>(), {
-  modelValue: 0
+  modelValue: 0,
 })
 
 const delegatedProps = reactiveOmit(props, 'class')

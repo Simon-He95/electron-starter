@@ -30,7 +30,7 @@ const forwardedProps = useForwardProps(delegatedProps)
         'data-[disabled]:text-muted-foreground data-[disabled]:opacity-50',
         // Unavailable
         'data-[unavailable]:text-destructive-foreground data-[unavailable]:line-through',
-        props.class
+        props.class,
       )
     "
     v-bind="forwardedProps"

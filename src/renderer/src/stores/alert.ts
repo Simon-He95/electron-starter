@@ -9,7 +9,7 @@ export const useAlertStore = defineStore('alert', () => {
     show: boolean
     duration?: number
   }>({
-    show: false
+    show: false,
   })
   let timer: any = null
 
@@ -17,10 +17,11 @@ export const useAlertStore = defineStore('alert', () => {
     type: 'error' | 'warning' | 'success',
     message: string,
     title: string = '',
-    duration: number = 500
+    duration: number = 500,
   ) {
     alert.value = { duration, message, show: true, title, type }
-    if (timer) clearTimeout(timer)
+    if (timer)
+      clearTimeout(timer)
     timer = setTimeout(() => {
       alert.value.show = false
       timer = null
@@ -29,7 +30,7 @@ export const useAlertStore = defineStore('alert', () => {
 
   function close() {
     alert.value = {
-      show: false
+      show: false,
     }
     if (timer) {
       clearTimeout(timer)
