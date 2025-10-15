@@ -20,7 +20,7 @@ vi.mock('../src/main/listener/createWindow', async () => {
 
 // mock electron and a few other imports used in main/index.ts
 vi.mock('electron', async () => {
-  return {
+  const mock = {
     app: {
       whenReady: () => Promise.resolve(),
       on: vi.fn(),
@@ -32,6 +32,7 @@ vi.mock('electron', async () => {
       handle: vi.fn(),
     },
   }
+  return { __esModule: true, default: mock, ...mock }
 })
 
 vi.mock('@electron-toolkit/utils', () => ({

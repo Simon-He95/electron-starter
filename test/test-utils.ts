@@ -67,16 +67,27 @@ vi.mock('../src/main/index.js', () => ({
   },
 }))
 
-vi.mock('electron', () => ({
-  // Return the mock as the module's default export surface; tests import
-  // BrowserWindow etc. via named imports but Vitest's ESM loader will get
-  // the mocked module correctly when it's registered before test collection.
-  BrowserWindow: MockBrowserWindow as any,
-  screen: { getDisplayMatching: () => ({ bounds: { x: 0, width: 1024 } }) },
-  shell: { openExternal: vi.fn() },
-  app: { whenReady: () => Promise.resolve(), on: vi.fn() },
-  ipcMain: { handle: vi.fn() },
-}))
+vi.mock('electron', () => {
+  // Provide both a default export and named exports so ESM imports
+  // (named or default) work correctly in the test environment.
+  const mockModule = {
+    __esModule: true,
+    default: {
+      BrowserWindow: MockBrowserWindow as any,
+      screen: { getDisplayMatching: () => ({ bounds: { x: 0, width: 1024 } }) },
+      shell: { openExternal: vi.fn() },
+      app: { whenReady: () => Promise.resolve(), on: vi.fn() },
+      ipcMain: { handle: vi.fn() },
+    },
+    // also provide named exports for code that does `import electron from 'electron'` and then destructures
+    BrowserWindow: MockBrowserWindow as any,
+    screen: { getDisplayMatching: () => ({ bounds: { x: 0, width: 1024 } }) },
+    shell: { openExternal: vi.fn() },
+    app: { whenReady: () => Promise.resolve(), on: vi.fn() },
+    ipcMain: { handle: vi.fn() },
+  }
+  return mockModule
+})
 
 vi.mock('lazy-js-utils', () => ({
   useInterval: (cb: any, ms: number) => {
