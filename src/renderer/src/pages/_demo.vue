@@ -24,12 +24,13 @@ function parseParamsFromLocation() {
       // fallback to search param `params`
       const s = new URLSearchParams(window.location.search)
       const p = s.get('params')
-      if (p) params.value = JSON.parse(p)
+      if (p)
+        params.value = JSON.parse(p)
     }
   }
   catch (e) {
     // ignore parse errors
-    // eslint-disable-next-line no-console
+
     console.warn('failed to parse params', e)
   }
 
@@ -81,9 +82,13 @@ onMounted(() => {
     </div>
 
     <div class="mt-6 prose-sm bg-surface p-4 rounded">
-      <h3 class="text-base font-medium">Received params</h3>
+      <h3 class="text-base font-medium">
+        Received params
+      </h3>
       <pre class="whitespace-pre-wrap break-words">{{ params ? JSON.stringify(params, null, 2) : 'no params' }}</pre>
-      <h3 class="text-base font-medium mt-3">Hash route</h3>
+      <h3 class="text-base font-medium mt-3">
+        Hash route
+      </h3>
       <div>{{ hashRoute ?? 'none' }}</div>
     </div>
   </div>

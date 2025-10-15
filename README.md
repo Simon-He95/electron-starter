@@ -85,7 +85,6 @@ pnpm test
 
 更多说明参见：`README.en.md`（英文）和 `docs/createWindow.md`（createWindow API）。
 
-
 ## Project Setup
 
 Reading params / hashRoute in renderer
@@ -103,7 +102,6 @@ const hash = window.location.hash.replace(/^#/, '')
 
 console.log('params', params, 'hash', hash)
 ```
-
 
 ### Install
 

@@ -66,7 +66,7 @@ Full inferred TypeScript shape (for copy/paste)
 ```ts
 // This interface mirrors the zod-inferred CreateWindowInput from src/shared/schemas.ts
 export interface CreateWindowInput {
-  bound?: { height?: number; width?: number; x?: number; y?: number }
+  bound?: { height?: number, width?: number, x?: number, y?: number }
   exportName?: string
   hashRoute?: string
   isFollowMove?: boolean
@@ -170,7 +170,7 @@ Full inferred TypeScript shape (for copy/paste)
 ```ts
 // This interface mirrors the zod-inferred CreateWindowInput from src/shared/schemas.ts
 export interface CreateWindowInput {
-  bound?: { height?: number; width?: number; x?: number; y?: number }
+  bound?: { height?: number, width?: number, x?: number, y?: number }
   exportName?: string
   hashRoute?: string
   isFollowMove?: boolean
