@@ -58,6 +58,48 @@ export const UpdateWindowBoundsSchema = z.object({
 export const PingSchema = z.undefined()
 export const GetOpenLinksExternalSchema = z.undefined()
 export const UpdateOpenLinksExternalSchema = z.boolean()
+export const GetCurrentWindowStateSchema = z.undefined()
+
+const TooltipPlacementSchema = z.union([z.literal('top'), z.literal('bottom'), z.literal('left'), z.literal('right')])
+
+export const TooltipAnchorRectSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+  width: z.number(),
+  height: z.number(),
+})
+
+export const TooltipContentSchema = z
+  .object({
+    text: z.string().optional(),
+    html: z.string().optional(),
+    maxWidth: z.number().optional(),
+  })
+  .refine(v => !!(v.text || v.html), { message: 'Tooltip content must include text or html' })
+
+export const TooltipShowSchema = z.object({
+  id: z.string(),
+  anchorRect: TooltipAnchorRectSchema,
+  content: TooltipContentSchema,
+  placement: TooltipPlacementSchema.optional(),
+  offset: z.number().optional(),
+})
+
+export const TooltipUpdateAnchorRectSchema = z.object({
+  id: z.string(),
+  anchorRect: TooltipAnchorRectSchema,
+})
+
+export const TooltipHideSchema = z.object({ id: z.string() })
+export const TooltipForceHideSchema = z.undefined()
+
+export const TooltipReportSizeSchema = z.object({
+  width: z.number(),
+  height: z.number(),
+})
+
+export const TooltipSetTooltipHoveredSchema = z.boolean()
+export const TooltipRendererReadySchema = z.undefined()
 
 export const schemaMap: Record<string, z.ZodTypeAny> = {
   createWindow: CreateWindowSchema,
@@ -68,6 +110,14 @@ export const schemaMap: Record<string, z.ZodTypeAny> = {
 schemaMap.ping = PingSchema
 schemaMap.getOpenLinksExternal = GetOpenLinksExternalSchema
 schemaMap.updateOpenLinksExternal = UpdateOpenLinksExternalSchema
+schemaMap.getCurrentWindowState = GetCurrentWindowStateSchema
+schemaMap.tooltipShow = TooltipShowSchema
+schemaMap.tooltipUpdateAnchorRect = TooltipUpdateAnchorRectSchema
+schemaMap.tooltipHide = TooltipHideSchema
+schemaMap.tooltipForceHide = TooltipForceHideSchema
+schemaMap.tooltipReportSize = TooltipReportSizeSchema
+schemaMap.tooltipSetTooltipHovered = TooltipSetTooltipHoveredSchema
+schemaMap.tooltipRendererReady = TooltipRendererReadySchema
 
 export default schemaMap
 
@@ -78,6 +128,14 @@ export type UpdateWindowBoundsInput = z.infer<typeof UpdateWindowBoundsSchema>
 export type PingInput = z.infer<typeof PingSchema>
 export type GetOpenLinksExternalInput = z.infer<typeof GetOpenLinksExternalSchema>
 export type UpdateOpenLinksExternalInput = z.infer<typeof UpdateOpenLinksExternalSchema>
+export type GetCurrentWindowStateInput = z.infer<typeof GetCurrentWindowStateSchema>
+export type TooltipShowInput = z.infer<typeof TooltipShowSchema>
+export type TooltipUpdateAnchorRectInput = z.infer<typeof TooltipUpdateAnchorRectSchema>
+export type TooltipHideInput = z.infer<typeof TooltipHideSchema>
+export type TooltipForceHideInput = z.infer<typeof TooltipForceHideSchema>
+export type TooltipReportSizeInput = z.infer<typeof TooltipReportSizeSchema>
+export type TooltipSetTooltipHoveredInput = z.infer<typeof TooltipSetTooltipHoveredSchema>
+export type TooltipRendererReadyInput = z.infer<typeof TooltipRendererReadySchema>
 
 // Central mapping of channel -> input type (used by main & renderer for consistent typing)
 export interface SchemaInputs {
@@ -86,13 +144,28 @@ export interface SchemaInputs {
   ping: PingInput
   getOpenLinksExternal: GetOpenLinksExternalInput
   updateOpenLinksExternal: UpdateOpenLinksExternalInput
+  getCurrentWindowState: GetCurrentWindowStateInput
+  tooltipShow: TooltipShowInput
+  tooltipUpdateAnchorRect: TooltipUpdateAnchorRectInput
+  tooltipHide: TooltipHideInput
+  tooltipForceHide: TooltipForceHideInput
+  tooltipReportSize: TooltipReportSizeInput
+  tooltipSetTooltipHovered: TooltipSetTooltipHoveredInput
+  tooltipRendererReady: TooltipRendererReadyInput
 }
 
 // Event schemas for messages sent from main -> renderer (ipcRenderer.on)
 export const WindowBlurSchema = z.object({ hashRoute: z.string().optional(), id: z.number() })
+export const TooltipSetSchema = z.object({
+  content: TooltipContentSchema,
+  placement: TooltipPlacementSchema,
+  maxWidth: z.number().optional(),
+})
 
 export const eventSchemaMap: Record<string, z.ZodTypeAny> = {
   'window-blur': WindowBlurSchema,
+  'tooltip-set': TooltipSetSchema,
 }
 
 export type WindowBlurPayload = z.infer<typeof WindowBlurSchema>
+export type TooltipSetPayload = z.infer<typeof TooltipSetSchema>

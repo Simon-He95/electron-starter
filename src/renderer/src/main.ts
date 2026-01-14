@@ -6,6 +6,7 @@ import routes from 'virtual:generated-pages'
 import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import App from './App.vue'
+import { vElectronTooltip } from './utils/electronTooltip'
 
 import './styles/index.css'
 
@@ -22,6 +23,7 @@ const router = createRouter({
 
   const app = createApp(App)
   app.use(router).use(pinia)
+  app.directive('electron-tooltip', vElectronTooltip)
 
   // initialize auth store to load token from Dexie (preload) before mount
   const auth = useAuthStore()

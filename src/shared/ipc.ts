@@ -40,6 +40,16 @@ export interface IPCInvokeMap {
   updateOpenLinksExternal: (event: IpcMainInvokeEvent, value: SchemaInputs['updateOpenLinksExternal']) => void
   // This channel returns a boolean indicating whether links open externally
   getOpenLinksExternal: (event: IpcMainInvokeEvent) => boolean
+  getCurrentWindowState: (event: IpcMainInvokeEvent) => { isFullScreen: boolean }
+
+  // Electron-level tooltip window (detached BrowserWindow)
+  tooltipShow: (event: IpcMainInvokeEvent, params: SchemaInputs['tooltipShow']) => void
+  tooltipUpdateAnchorRect: (event: IpcMainInvokeEvent, params: SchemaInputs['tooltipUpdateAnchorRect']) => void
+  tooltipHide: (event: IpcMainInvokeEvent, params: SchemaInputs['tooltipHide']) => void
+  tooltipForceHide: (event: IpcMainInvokeEvent) => void
+  tooltipReportSize: (event: IpcMainInvokeEvent, params: SchemaInputs['tooltipReportSize']) => void
+  tooltipSetTooltipHovered: (event: IpcMainInvokeEvent, hovered: SchemaInputs['tooltipSetTooltipHovered']) => void
+  tooltipRendererReady: (event: IpcMainInvokeEvent) => void
 }
 
 export type InvokeArgs<T extends any[]> = T extends [any, ...infer R] ? R : T

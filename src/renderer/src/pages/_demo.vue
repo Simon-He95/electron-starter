@@ -67,9 +67,11 @@ onMounted(() => {
     </div>
 
     <div class="mt-6 flex items-center gap-3">
-      <Button variant="secondary" @click="countStore.increment">
-        Click me ({{ countStore.count }})
-      </Button>
+      <span v-electron-tooltip="'Detached BrowserWindow tooltip (hover me)'" class="inline-flex">
+        <Button variant="secondary" @click="countStore.increment">
+          Click me ({{ countStore.count }})
+        </Button>
+      </span>
       <Button @click="updateSize('large')">
         放大
       </Button>
@@ -90,6 +92,29 @@ onMounted(() => {
         Hash route
       </h3>
       <div>{{ hashRoute ?? 'none' }}</div>
+    </div>
+
+    <div class="mt-8">
+      <h3 class="text-base font-medium">
+        Tooltip edge cases
+      </h3>
+      <p class="text-sm text-muted-foreground">
+        Move/resize this window, drag it near screen edges, or enter full screen to verify flipping and tracking.
+      </p>
+      <div class="mt-4 flex items-center justify-between gap-4">
+        <div
+          v-electron-tooltip="{ text: 'Prefer left; will flip if it overflows.' , placement: 'left' }"
+          class="rounded border px-3 py-2 text-sm bg-background"
+        >
+          Hover (left)
+        </div>
+        <div
+          v-electron-tooltip="{ text: 'Prefer right; will flip if it overflows.' , placement: 'right' }"
+          class="rounded border px-3 py-2 text-sm bg-background"
+        >
+          Hover (right)
+        </div>
+      </div>
     </div>
   </div>
 </template>

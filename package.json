@@ -81,10 +81,7 @@
     "ignoredBuiltDependencies": [
       "electron-winstaller",
       "esbuild"
-    ],
-    "overrides": {
-      "rollup": "4.44.1"
-    }
+    ]
   },
   "overrides": {
     "rollup": "4.44.1"
