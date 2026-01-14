@@ -1,11 +1,11 @@
 import type { ArgsForFromImpl, ReturnForFromImpl, CreateWindowOpts as WindowOptions } from '../../shared/ipc.js'
 import type { SchemaInputs } from '../../shared/schemas.js'
 import { defineIpcHandlersStrict } from '../../shared/ipc.js'
-import electron from 'electron'
 import { context } from '../index.js'
 
 import { createWindow, updateWindowBounds } from './createWindow.js'
 import { tooltipManager } from '../tooltip/TooltipManager.js'
+import { createElectronTooltipIpcHandlers } from '../../plugins/electron-tooltip/main/createIpcHandlers.js'
 
 // ipcListener 的 handler 签名保留 event 参数（IpcMainInvokeEvent），但我们使用 defineIpcHandlers
 // 以便 TypeScript 从实现处推断出类型并将其可供其他模块 import
@@ -24,10 +24,7 @@ const ipcListener = defineIpcHandlersStrict({
   getOpenLinksExternal: (_event) => {
     return context.windows.openLinksExternal
   },
-  getCurrentWindowState: (event) => {
-    const win = electron.BrowserWindow.fromWebContents(event.sender)
-    return { isFullScreen: !!win?.isFullScreen?.() }
-  },
+  ...createElectronTooltipIpcHandlers(tooltipManager),
   ping: () => {
     // eslint-disable-next-line no-console
     console.log('pong')
@@ -37,36 +34,6 @@ const ipcListener = defineIpcHandlersStrict({
   },
   updateWindowBounds: (_event, options: SchemaInputs['updateWindowBounds']) => {
     return updateWindowBounds(options)
-  },
-  tooltipShow: (event, params: SchemaInputs['tooltipShow']) => {
-    const win = electron.BrowserWindow.fromWebContents(event.sender)
-    if (!win)
-      return
-    tooltipManager.show(win, params)
-  },
-  tooltipUpdateAnchorRect: (event, params: SchemaInputs['tooltipUpdateAnchorRect']) => {
-    const win = electron.BrowserWindow.fromWebContents(event.sender)
-    if (!win)
-      return
-    tooltipManager.updateAnchorRect(win, params)
-  },
-  tooltipHide: (_event, params: SchemaInputs['tooltipHide']) => {
-    tooltipManager.hideFromAnchorLeave(params)
-  },
-  tooltipForceHide: () => {
-    tooltipManager.forceHide()
-  },
-  tooltipReportSize: (_event, params: SchemaInputs['tooltipReportSize']) => {
-    tooltipManager.reportContentSize(params)
-  },
-  tooltipSetTooltipHovered: (_event, hovered: SchemaInputs['tooltipSetTooltipHovered']) => {
-    tooltipManager.setTooltipHovered(hovered)
-  },
-  tooltipRendererReady: (event) => {
-    const win = electron.BrowserWindow.fromWebContents(event.sender)
-    if (!win)
-      return
-    tooltipManager.onRendererReady(win)
   },
 })
 

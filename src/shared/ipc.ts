@@ -46,8 +46,10 @@ export interface IPCInvokeMap {
   tooltipShow: (event: IpcMainInvokeEvent, params: SchemaInputs['tooltipShow']) => void
   tooltipUpdateAnchorRect: (event: IpcMainInvokeEvent, params: SchemaInputs['tooltipUpdateAnchorRect']) => void
   tooltipHide: (event: IpcMainInvokeEvent, params: SchemaInputs['tooltipHide']) => void
+  tooltipClose: (event: IpcMainInvokeEvent, params: SchemaInputs['tooltipClose']) => void
   tooltipForceHide: (event: IpcMainInvokeEvent) => void
   tooltipReportSize: (event: IpcMainInvokeEvent, params: SchemaInputs['tooltipReportSize']) => void
+  tooltipSetPinned: (event: IpcMainInvokeEvent, params: SchemaInputs['tooltipSetPinned']) => void
   tooltipSetTooltipHovered: (event: IpcMainInvokeEvent, hovered: SchemaInputs['tooltipSetTooltipHovered']) => void
   tooltipRendererReady: (event: IpcMainInvokeEvent) => void
 }

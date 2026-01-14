@@ -72,6 +72,31 @@ onMounted(() => {
           Click me ({{ countStore.count }})
         </Button>
       </span>
+      <span
+        v-electron-tooltip="{
+          component: { name: 'DemoTooltipCard', props: { title: '自定义组件 Tooltip', description: '在 tooltip 窗口里渲染组件（name + props）' } },
+          placement: 'bottom',
+          maxWidth: 360,
+        }"
+        class="inline-flex"
+      >
+        <Button variant="outline">
+          组件 Tooltip
+        </Button>
+      </span>
+      <span
+        v-electron-tooltip="{
+          component: { name: 'DemoPopConfirm', props: { title: '确认操作？', description: '手动关闭：点击按钮才关闭（不会因 blur 自动关闭）' } },
+          behavior: 'manual',
+          placement: 'bottom',
+          maxWidth: 360,
+        }"
+        class="inline-flex"
+      >
+        <Button variant="outline">
+          PopConfirm
+        </Button>
+      </span>
       <Button @click="updateSize('large')">
         放大
       </Button>

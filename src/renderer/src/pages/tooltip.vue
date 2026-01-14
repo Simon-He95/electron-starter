@@ -1,15 +1,20 @@
 <script setup lang="ts">
-import type { TooltipSetPayload } from '../../../shared/schemas'
-import { computed, nextTick, onMounted, ref } from 'vue'
+import DemoTooltipCard from '@renderer/components/DemoTooltipCard.vue'
+import DemoPopConfirm from '@renderer/components/DemoPopConfirm.vue'
+import type { TooltipSetPayload } from '../../../plugins/electron-tooltip/schemas'
+import { createElectronTooltipWindowClient } from '../../../plugins/electron-tooltip/renderer/windowClient'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 
 type Placement = TooltipSetPayload['placement']
 
+const rootEl = ref<HTMLElement | null>(null)
+const ready = ref(false)
 const payload = ref<TooltipSetPayload>({
+  id: '',
   content: { text: '' },
   placement: 'top',
   maxWidth: 320,
 })
-const ready = ref(false)
 
 const contentStyle = computed(() => ({
   maxWidth: `${payload.value.maxWidth ?? payload.value.content.maxWidth ?? 320}px`,
@@ -47,16 +52,38 @@ const arrowSpec = computed(() => {
   }
 })
 
+const componentRegistry = {
+  DemoTooltipCard,
+  DemoPopConfirm,
+} as const
+
+const resolvedComponent = computed(() => {
+  const name = payload.value.content.component?.name
+  if (!name)
+    return null
+  return (componentRegistry as Record<string, any>)[name] ?? null
+})
+
+const resolvedProps = computed<Record<string, any>>(() => payload.value.content.component?.props ?? {})
+const injectedProps = computed(() => ({
+  __closeTooltip: () => client.close(),
+  __setPinned: (pinned: boolean) => client.setPinned(pinned),
+}))
+
+const client = createElectronTooltipWindowClient({
+  invoke: (channel, ...args) => (window as any).invoke(channel, ...args),
+  onIpc: (channel, listener) => (window as any).onIpc(channel, listener),
+})
+
+let unsubscribe: null | (() => void) = null
+
 async function reportSize() {
   await nextTick()
-  const el = document.getElementById('electron-tooltip-root')
+  const el = rootEl.value
   if (!el)
     return
   const rect = el.getBoundingClientRect()
-  await window.invoke('tooltipReportSize', {
-    width: Math.ceil(rect.width),
-    height: Math.ceil(rect.height),
-  })
+  client.reportSize({ width: Math.ceil(rect.width), height: Math.ceil(rect.height) })
 }
 
 onMounted(() => {
@@ -64,28 +91,33 @@ onMounted(() => {
   document.body.style.background = 'transparent'
   document.body.style.margin = '0'
 
-  window.onIpc('tooltip-set', (p: TooltipSetPayload) => {
-    payload.value = p
-    ready.value = true
-    reportSize()
+  unsubscribe = client.subscribe((s) => {
+    ready.value = s.ready
+    payload.value = s.payload
+    if (s.ready)
+      reportSize()
   })
+  client.start()
+})
 
-  // Handshake: tell main process we're ready to receive tooltip-set events.
-  // `did-finish-load` can fire before Vue has mounted and registered listeners.
-  window.invoke('tooltipRendererReady')
+onUnmounted(() => {
+  unsubscribe?.()
+  unsubscribe = null
+  client.stop()
 })
 
 function onEnter() {
-  window.invoke('tooltipSetTooltipHovered', true)
+  client.setTooltipHovered(true)
 }
 function onLeave() {
-  window.invoke('tooltipSetTooltipHovered', false)
+  client.setTooltipHovered(false)
 }
 </script>
 
 <template>
+  <!-- This file is app-owned on purpose: replace this UI with your own tooltip content. -->
   <div
-    id="electron-tooltip-root"
+    ref="rootEl"
     class="w-fit h-fit p-2"
     :style="{ opacity: ready ? 1 : 0 }"
     @mouseenter="onEnter"
@@ -107,10 +139,14 @@ function onLeave() {
           <path :d="arrowSpec.d" :fill="'hsl(var(--popover))'" :stroke="'hsl(var(--border))'" stroke-linejoin="round" />
         </svg>
       </div>
-      <div v-if="payload.content.text" class="whitespace-pre-wrap break-words">
+      <component
+        v-if="resolvedComponent"
+        :is="resolvedComponent"
+        v-bind="{ ...resolvedProps, ...injectedProps }"
+      />
+      <div v-else-if="payload.content.text" class="whitespace-pre-wrap break-words">
         {{ payload.content.text }}
       </div>
-      <!-- NOTE: only use html when content is trusted/sanitized -->
       <div v-else-if="payload.content.html" class="prose prose-sm max-w-none" v-html="payload.content.html" />
     </div>
   </div>
