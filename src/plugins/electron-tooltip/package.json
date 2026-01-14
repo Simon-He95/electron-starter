@@ -21,10 +21,11 @@
     "zod": ">=4"
   },
   "devDependencies": {
+    "bumpp": "^10.4.0",
     "typescript": "^5.9.3"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "release": "bumpp --commit --no-tag --no-push && npm run build"
   }
 }
-
