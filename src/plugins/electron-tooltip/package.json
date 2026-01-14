@@ -1,6 +1,6 @@
 {
-  "name": "@simon_he/electron-tooltip",
-  "version": "0.1.0",
+  "name": "electron-tooltip",
+  "version": "0.0.0",
   "type": "module",
   "private": true,
   "main": "./dist/index.js",
