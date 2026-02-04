@@ -23,5 +23,5 @@ function loadTooltipWindow(win: ElectronBrowserWindow) {
 export const tooltipManager = new ElectronTooltipManager({
   preloadPath: join(__dirname, '../preload/index.mjs'),
   loadTooltipWindow,
+  windowOptions: process.platform === 'darwin' ? { type: 'panel' } : undefined,
 })
-

@@ -14,10 +14,6 @@ const { BrowserWindow } = electron as any
 
 export function createElectronTooltipIpcHandlers(manager: ElectronTooltipManager) {
   return {
-    getCurrentWindowState: (event: IpcMainInvokeEvent) => {
-      const win = BrowserWindow.fromWebContents(event.sender)
-      return { isFullScreen: !!win?.isFullScreen?.() }
-    },
     tooltipShow: (event: IpcMainInvokeEvent, params: TooltipShowInput) => {
       const win = BrowserWindow.fromWebContents(event.sender)
       if (!win)

@@ -6,7 +6,7 @@
 - 跟随 parent window：move / resize / 全屏切换时保持位置一致
 - 智能翻转：优先 `top/bottom/left/right`，超出 workArea 会自动切换并 clamp
 - 多窗口安全：用 `id` 防止 A 的 leave 误关 B 的 tooltip
-- macOS 全屏降级：全屏时使用 renderer 内的 inline tooltip，避免 Space 切换
+- macOS 全屏：建议使用 `type: 'panel'` 保持独立窗口
 - 交互模式：`behavior: 'manual'` 支持 popconfirm（不会因 blur/hover 离开自动关闭）
 
 ---
@@ -75,21 +75,10 @@ import { vElectronTooltip } from 'electron-tooltip'
 app.directive('electron-tooltip', vElectronTooltip)
 ```
 
-如果你要用 `content.component`（Vue 组件渲染），并且希望 **macOS 全屏降级（inline tooltip）** 的内容也一致，需要给 directive 提供组件解析器：
+macOS 全屏建议在主进程创建 manager 时传：
 
 ```ts
-import { createElectronTooltipDirective } from 'electron-tooltip'
-import MyTooltipCard from './MyTooltipCard.vue'
-
-app.directive(
-  'electron-tooltip',
-  createElectronTooltipDirective(undefined, {
-    resolveInlineComponent: (name) => {
-      if (name === 'MyTooltipCard') return MyTooltipCard
-      return null
-    },
-  }),
-)
+windowOptions: { type: 'panel' }
 ```
 
 ### 4) 渲染进程（tooltip 窗口页）：实现你自己的 UI
@@ -215,7 +204,6 @@ pnpm -C src/plugins/electron-tooltip build
 本方案依赖 size-handshake：主进程会等待 tooltip 页面 `reportSize()` 后再 show。
 如果你替换了 UI，确保 payload ready 后会触发一次 `reportSize()`。
 
-### 3) macOS 全屏下组件渲染不一致
+### 3) macOS 全屏下 tooltip 不显示
 
-macOS 全屏会降级到 inline tooltip，要让 inline 内容一致：
-- 用 `createElectronTooltipDirective(..., { resolveInlineComponent })` 提供组件解析器
+确认主进程创建 manager 时启用了 `windowOptions.type = 'panel'`。

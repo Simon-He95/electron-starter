@@ -14,7 +14,6 @@ export type {
   ElectronTooltipBindingValue,
   ElectronTooltipBridge,
   ElectronTooltipPlacement,
-  CreateElectronTooltipDirectiveOptions,
 } from './renderer/vueDirective.js'
 
 export { createElectronTooltipWindowClient } from './renderer/windowClient.js'

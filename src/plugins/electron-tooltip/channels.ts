@@ -1,5 +1,4 @@
 export const ELECTRON_TOOLTIP_CHANNELS = {
-  getCurrentWindowState: 'getCurrentWindowState',
   tooltipClose: 'tooltipClose',
   tooltipForceHide: 'tooltipForceHide',
   tooltipHide: 'tooltipHide',

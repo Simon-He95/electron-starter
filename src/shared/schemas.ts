@@ -5,7 +5,6 @@ import {
   type TooltipSchemaInputs,
 } from '../plugins/electron-tooltip/schemas.js'
 export {
-  GetCurrentWindowStateSchema,
   TooltipAnchorRectSchema,
   TooltipContentSchema,
   TooltipCloseSchema,
@@ -20,7 +19,6 @@ export {
   TooltipUpdateAnchorRectSchema,
 } from '../plugins/electron-tooltip/schemas.js'
 export type {
-  GetCurrentWindowStateInput,
   TooltipCloseInput,
   TooltipForceHideInput,
   TooltipHideInput,

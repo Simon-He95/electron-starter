@@ -40,7 +40,6 @@ export interface IPCInvokeMap {
   updateOpenLinksExternal: (event: IpcMainInvokeEvent, value: SchemaInputs['updateOpenLinksExternal']) => void
   // This channel returns a boolean indicating whether links open externally
   getOpenLinksExternal: (event: IpcMainInvokeEvent) => boolean
-  getCurrentWindowState: (event: IpcMainInvokeEvent) => { isFullScreen: boolean }
 
   // Electron-level tooltip window (detached BrowserWindow)
   tooltipShow: (event: IpcMainInvokeEvent, params: SchemaInputs['tooltipShow']) => void
@@ -117,13 +116,4 @@ export interface HttpClient {
   post: <T = any>(url: string, data?: any, config?: RequestConfig) => Promise<T>
   put: <T = any>(url: string, data?: any, config?: RequestConfig) => Promise<T>
   delete: <T = any>(url: string, params?: Params, config?: RequestConfig) => Promise<T>
-}
-
-export interface TokenApi {
-  get: () => Promise<string | null>
-  set: (value: string) => Promise<void>
-  remove: () => Promise<void>
-  getUsername: () => Promise<string | null>
-  setUsername: (name: string) => Promise<void>
-  removeUsername: () => Promise<void>
 }

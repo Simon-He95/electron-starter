@@ -50,8 +50,6 @@ export const TooltipSetTooltipHoveredSchema = z.boolean()
 export const TooltipRendererReadySchema = z.undefined()
 export const TooltipSetPinnedSchema = z.object({ id: z.string(), pinned: z.boolean() })
 
-export const GetCurrentWindowStateSchema = z.undefined()
-
 export const TooltipSetSchema = z.object({
   id: z.string(),
   content: TooltipContentSchema,
@@ -69,11 +67,9 @@ export type TooltipReportSizeInput = z.infer<typeof TooltipReportSizeSchema>
 export type TooltipSetTooltipHoveredInput = z.infer<typeof TooltipSetTooltipHoveredSchema>
 export type TooltipRendererReadyInput = z.infer<typeof TooltipRendererReadySchema>
 export type TooltipSetPinnedInput = z.infer<typeof TooltipSetPinnedSchema>
-export type GetCurrentWindowStateInput = z.infer<typeof GetCurrentWindowStateSchema>
 export type TooltipSetPayload = z.infer<typeof TooltipSetSchema>
 
 export interface TooltipSchemaInputs {
-  getCurrentWindowState: GetCurrentWindowStateInput
   tooltipShow: TooltipShowInput
   tooltipUpdateAnchorRect: TooltipUpdateAnchorRectInput
   tooltipHide: TooltipHideInput
@@ -86,7 +82,6 @@ export interface TooltipSchemaInputs {
 }
 
 export const tooltipSchemaMap: Record<string, z.ZodTypeAny> = {
-  getCurrentWindowState: GetCurrentWindowStateSchema,
   tooltipShow: TooltipShowSchema,
   tooltipUpdateAnchorRect: TooltipUpdateAnchorRectSchema,
   tooltipHide: TooltipHideSchema,
